@@ -1,0 +1,91 @@
+[gd_scene load_steps=12 format=3 uid="uid://cx8ml2ge878ga"]
+
+[ext_resource type="Script" path="res://PlayerMovement.cs" id="1_itq1p"]
+[ext_resource type="Script" path="res://CameraFollow.cs" id="2_g8fbf"]
+[ext_resource type="Script" path="res://ForceHandler.cs" id="3_r0d1t"]
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_6r0m3"]
+
+[sub_resource type="SphereMesh" id="SphereMesh_ow8gu"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_e4mmk"]
+albedo_color = Color(1, 0, 0.0196078, 1)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_h8fb4"]
+size = Vector3(20, 0.01, 20)
+
+[sub_resource type="BoxMesh" id="BoxMesh_r1ymv"]
+size = Vector3(20, 0.01, 20)
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_cd1k7"]
+radius = 3.0
+
+[sub_resource type="SphereMesh" id="SphereMesh_bp6x3"]
+radius = 3.0
+height = 6.0
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_ep87t"]
+radius = 5.0
+
+[node name="Main" type="Node3D"]
+
+[node name="Player" type="RigidBody3D" parent="."]
+
+[node name="Sphere" type="CollisionShape3D" parent="Player"]
+shape = SubResource("SphereShape3D_6r0m3")
+
+[node name="PlayerMesh" type="MeshInstance3D" parent="Player"]
+mesh = SubResource("SphereMesh_ow8gu")
+surface_material_override/0 = SubResource("StandardMaterial3D_e4mmk")
+
+[node name="PlayerMovement" type="Node" parent="Player" node_paths=PackedStringArray("player", "camera")]
+script = ExtResource("1_itq1p")
+DragCoefficient = 5.0
+player = NodePath("..")
+camera = NodePath("../../CameraParent/MainCamera")
+
+[node name="Floor" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -2.36824, 0)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Floor"]
+shape = SubResource("BoxShape3D_h8fb4")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Floor"]
+mesh = SubResource("BoxMesh_r1ymv")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(-0.859293, 0.139635, 0.492055, 0.373941, -0.484862, 0.790618, 0.348977, 0.863372, 0.364423, 66.3423, 0, -94.4082)
+shadow_enabled = true
+
+[node name="CameraParent" type="Node3D" parent="."]
+
+[node name="MainCamera" type="Camera3D" parent="CameraParent"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.0114365, -4.76837e-07, 9.12414)
+
+[node name="Node" type="Node" parent="CameraParent" node_paths=PackedStringArray("Camera", "CameraParent", "FollowTarget")]
+script = ExtResource("2_g8fbf")
+Camera = NodePath("../MainCamera")
+CameraParent = NodePath("..")
+FollowTarget = NodePath("../../Player")
+
+[node name="Sphere" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8.15761, 4.06305, 0)
+
+[node name="Body" type="StaticBody3D" parent="Sphere"]
+
+[node name="SphereShape" type="CollisionShape3D" parent="Sphere/Body"]
+shape = SubResource("SphereShape3D_cd1k7")
+
+[node name="SphereMesh" type="MeshInstance3D" parent="Sphere"]
+mesh = SubResource("SphereMesh_bp6x3")
+
+[node name="Area3D" type="Area3D" parent="Sphere"]
+
+[node name="SphereShape" type="CollisionShape3D" parent="Sphere/Area3D"]
+shape = SubResource("SphereShape3D_ep87t")
+
+[node name="ForceHandler" type="Node" parent="Sphere"]
+script = ExtResource("3_r0d1t")
+
+[connection signal="body_entered" from="Sphere/Area3D" to="Sphere/ForceHandler" method="_on_area_3d_body_entered"]
+[connection signal="body_exited" from="Sphere/Area3D" to="Sphere/ForceHandler" method="_on_area_3d_body_exited"]
