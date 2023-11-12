@@ -2,29 +2,40 @@ using Godot;
 using System;
 using System.Collections.Generic;
 
+public enum PlayerState : int
+{
+	GROUNDED,
+	AIRBORNE,
+	CLIMBING
+}
+
 public partial class PlayerMovement : Node
 {
 
 	[Export]
-	public float MovementForce = 20.0f;
+	public float[] MovementForces = new float[3]{20f, 15f, 5f};
 
 	[Export]
-	public float DragCoefficient = 0.2f;
-
-	[Export]
-	public RigidBody3D player;
+	public float[] DragCoefficients = new float[3]{5f, 5f, 5f};
 
 	[Export]
 	public Camera3D camera;
 
-	public List<Vector3> forcePositions;
+	private PlayerState state = PlayerState.AIRBORNE;
+
+	private RigidBody3D player;
+
+	private PlayerClimbing climbing;
 
 	private Vector2 up = Vector2.Zero;
 	private Vector2 down = Vector2.Zero;
 	private Vector2 left = Vector2.Zero;
 	private Vector2 right = Vector2.Zero;
 	private bool jumpPressed = false;
-	private bool climbing = false;
+	private bool climbingInput = false;
+
+	[Export]
+	public bool grounded = false;
 
 	public Vector2 NormalizeInput(Vector2 input)
 	{
@@ -38,21 +49,43 @@ public partial class PlayerMovement : Node
 
 	public Vector3 ConvertInputToAxis(Vector2 input, Vector3 forward, Vector3 up)
 	{
-		Vector3 right = -forward.Cross(up);
-		return (forward*input.Y) + (right*input.X);
+		Vector3 right = up.Cross(forward);
+		Vector3 newForward = right.Cross(up);
+		return (newForward*input.Y) + (right*input.X);
 	}
 
 	// Called when the node enters the scene tree for the first time.
 	public override void _Ready()
 	{
-		Input.MouseMode = Input.MouseModeEnum.Captured;
-		forcePositions = new List<Vector3>();
+		player = GetParent<RigidBody3D>();
+		climbing = (PlayerClimbing)GetParent().FindChild("PlayerClimbing");
 	}
 
 	// Called every frame. 'delta' is the elapsed time since the previous frame.
 	public override void _Process(double delta)
 	{
-		if (forcePositions.Count == 0 || !climbing)
+		var spaceState = player.GetWorld3D().DirectSpaceState;
+		var query = PhysicsRayQueryParameters3D.Create(player.GlobalTransform.Origin, player.GlobalTransform.Origin - new Vector3(0f, 1.5f, 0f));
+		query.Exclude.Add(player.GetRid());
+		var result = spaceState.IntersectRay(query);
+
+		grounded = result.Count > 0;
+
+		if (grounded)
+		{
+			state = PlayerState.GROUNDED;
+		}
+		else
+		{
+			state = PlayerState.AIRBORNE;
+		}
+
+		if (climbingInput && climbing.climbAvailable)
+		{
+			state = PlayerState.CLIMBING;
+		}
+
+		if (state != PlayerState.CLIMBING)
 		{
 			player.GravityScale = 1f;
 		}
@@ -60,17 +93,7 @@ public partial class PlayerMovement : Node
 		{
 			player.GravityScale = 0f;
 
-			Vector3 averageForce = Vector3.Zero;
-
-			foreach (Vector3 forcePosition in forcePositions)
-			{
-				Vector3 direction = (forcePosition - player.Transform.Origin).Normalized();
-				averageForce += direction;
-			}
-
-			averageForce *= (1f / forcePositions.Count);
-
-			player.ApplyForce(averageForce * 20f);
+			player.ApplyForce(climbing.forceDirection * 30f);
 
 		}
 
@@ -83,24 +106,47 @@ public partial class PlayerMovement : Node
 			direction.Y = 0;
 			direction = direction.Normalized();
 
-			player.ApplyForce(ConvertInputToAxis(input * MovementForce, direction, camera.GlobalTransform.Basis.Y));
-		}
-		else
-		{
-			Vector3 drag = -player.LinearVelocity;
+			if (state != PlayerState.CLIMBING)
+			{
+				Vector3 playerMovementOnGround = ConvertInputToAxis(input * MovementForces[(int)state], direction, Vector3.Up);
+				player.ApplyForce(playerMovementOnGround);
+			}
+			else
+			{
+				Vector3 normalToClimbingPlane = -climbing.forceDirection;
 
-			if (forcePositions.Count == 0 || !climbing)
-				drag.Y = 0;
+				normalToClimbingPlane.Y = Mathf.Abs(normalToClimbingPlane.Y);
 
-			player.ApplyForce(drag * DragCoefficient);
+				Vector3 playerMovementOnSurface = ConvertInputToAxis(input * MovementForces[(int)state], camera.GlobalTransform.Basis.Z, normalToClimbingPlane);
+
+				player.ApplyForce(playerMovementOnSurface);
+			}
+			
 		}
+		
+		Vector3 drag = -player.LinearVelocity;
+
+		if (state != PlayerState.CLIMBING)
+			drag.Y = 0;
+
+		player.ApplyForce(drag * DragCoefficients[(int)state]);
+
+		
 
 		if (jumpPressed)
 		{
+			if (state != PlayerState.AIRBORNE)
+			{
+				Vector3 jumpDirection = Vector3.Up;
+
+				if (state == PlayerState.CLIMBING)
+					jumpDirection = -climbing.forceDirection * 2.5f;
+
+				player.SetAxisVelocity(jumpDirection * 8.0f);
+			}
+
 			jumpPressed = false;
-			player.SetAxisVelocity(Vector3.Up * 5.0f);
 		}
-		
 	}
 
 	public override void _Input(InputEvent @event)
@@ -146,9 +192,7 @@ public partial class PlayerMovement : Node
 			jumpPressed = true;
 		}
 
-		if (@event.IsAction("Climbing"))
-		{
-			climbing = @event.IsActionPressed("Climbing");
-		}
+		if (@event.IsActionPressed("Climbing")) climbingInput = true;
+		else if (@event.IsActionReleased("Climbing")) climbingInput = false;
 	}
 }

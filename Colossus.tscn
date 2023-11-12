@@ -1,0 +1,352 @@
+[gd_scene load_steps=15 format=3 uid="uid://bfxbkcwf0yxs5"]
+
+[ext_resource type="Script" path="res://ForceHandler.cs" id="1_131kf"]
+[ext_resource type="Script" path="res://IKSolver.cs" id="2_7jbhc"]
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_0voa5"]
+radius = 3.0
+
+[sub_resource type="SphereMesh" id="SphereMesh_r8ub3"]
+radius = 3.0
+height = 6.0
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_icm16"]
+radius = 3.0
+
+[sub_resource type="SphereMesh" id="SphereMesh_lybim"]
+radius = 3.0
+height = 6.0
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_jjnow"]
+radius = 1.0
+height = 3.5
+
+[sub_resource type="CapsuleMesh" id="CapsuleMesh_ekkq1"]
+radius = 1.0
+height = 3.5
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_xs1qg"]
+radius = 1.5
+height = 5.0
+
+[sub_resource type="CapsuleMesh" id="CapsuleMesh_qqkhp"]
+radius = 1.5
+height = 5.0
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_t2112"]
+radius = 5.0
+
+[sub_resource type="SphereMesh" id="SphereMesh_h1sst"]
+radius = 5.0
+height = 10.0
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_yco1a"]
+radius = 4.0
+height = 10.0
+
+[sub_resource type="CapsuleMesh" id="CapsuleMesh_ftg1v"]
+radius = 4.0
+height = 10.0
+
+[node name="Colossus" type="Node3D"]
+
+[node name="Torso" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.999999, 0, 0, 0, 1, 0, 2.51716, -0.987462)
+
+[node name="Chest" type="Node3D" parent="Torso"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.0661945, 2.12605, -0.861167)
+
+[node name="Head" type="Node3D" parent="Torso/Chest"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 6.95646, 2.06625)
+
+[node name="ForceHandler" type="Node" parent="Torso/Chest/Head"]
+script = ExtResource("1_131kf")
+Thickness = 0.3
+
+[node name="Body" type="StaticBody3D" parent="Torso/Chest/Head"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.24802, 1.89779)
+
+[node name="SphereShape" type="CollisionShape3D" parent="Torso/Chest/Head/Body"]
+shape = SubResource("SphereShape3D_0voa5")
+
+[node name="SphereMesh" type="MeshInstance3D" parent="Torso/Chest/Head"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.24802, 1.89779)
+mesh = SubResource("SphereMesh_r8ub3")
+
+[node name="LeftShoulder" type="Node3D" parent="Torso/Chest"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.96519, 6.05922, 1.84863)
+
+[node name="ForceHandler" type="Node" parent="Torso/Chest/LeftShoulder"]
+script = ExtResource("1_131kf")
+Thickness = 0.3
+
+[node name="Body" type="StaticBody3D" parent="Torso/Chest/LeftShoulder"]
+
+[node name="SphereShape" type="CollisionShape3D" parent="Torso/Chest/LeftShoulder/Body"]
+shape = SubResource("SphereShape3D_icm16")
+
+[node name="SphereMesh" type="MeshInstance3D" parent="Torso/Chest/LeftShoulder"]
+mesh = SubResource("SphereMesh_lybim")
+
+[node name="LeftArm" type="Node3D" parent="Torso/Chest/LeftShoulder"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.666, -1.332, 0)
+
+[node name="Forearm" type="Node3D" parent="Torso/Chest/LeftShoulder/LeftArm"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.81593, 4.76837e-07, 0)
+
+[node name="Hand" type="Node3D" parent="Torso/Chest/LeftShoulder/LeftArm/Forearm"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.49537, 0, 0)
+script = ExtResource("2_7jbhc")
+chainLength = 2
+
+[node name="Hand_End" type="Node3D" parent="Torso/Chest/LeftShoulder/LeftArm/Forearm/Hand"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.62422, 0, 0)
+
+[node name="Capsule" type="Node3D" parent="Torso/Chest/LeftShoulder/LeftArm/Forearm/Hand"]
+transform = Transform3D(-4.37114e-08, 1, 0, -1, -4.37114e-08, 0, 0, 0, 1, 1.67949, 0, 0)
+
+[node name="ForceHandler" type="Node" parent="Torso/Chest/LeftShoulder/LeftArm/Forearm/Hand/Capsule"]
+script = ExtResource("1_131kf")
+Thickness = 0.3
+
+[node name="Body" type="StaticBody3D" parent="Torso/Chest/LeftShoulder/LeftArm/Forearm/Hand/Capsule"]
+
+[node name="CapsuleShape" type="CollisionShape3D" parent="Torso/Chest/LeftShoulder/LeftArm/Forearm/Hand/Capsule/Body"]
+transform = Transform3D(1, -1.49012e-08, -1.49012e-08, 0, 1, 1.11759e-08, 0, 1.11759e-08, 1, 0, 0, 0)
+shape = SubResource("CapsuleShape3D_jjnow")
+
+[node name="CapsuleMesh" type="MeshInstance3D" parent="Torso/Chest/LeftShoulder/LeftArm/Forearm/Hand/Capsule"]
+transform = Transform3D(1, -3.55271e-15, 0, 3.55271e-15, 1, 0, 0, 0, 1, 0, 0, 0)
+mesh = SubResource("CapsuleMesh_ekkq1")
+
+[node name="Capsule" type="Node3D" parent="Torso/Chest/LeftShoulder/LeftArm/Forearm"]
+transform = Transform3D(-4.37114e-08, 1, 0, -1, -4.37114e-08, 0, 0, 0, 1, 2.34126, 0, 0)
+
+[node name="ForceHandler" type="Node" parent="Torso/Chest/LeftShoulder/LeftArm/Forearm/Capsule"]
+script = ExtResource("1_131kf")
+Thickness = 0.3
+
+[node name="Body" type="StaticBody3D" parent="Torso/Chest/LeftShoulder/LeftArm/Forearm/Capsule"]
+
+[node name="CapsuleShape" type="CollisionShape3D" parent="Torso/Chest/LeftShoulder/LeftArm/Forearm/Capsule/Body"]
+transform = Transform3D(1, -1.49012e-08, -1.49012e-08, 0, 1, 1.11759e-08, 0, 1.11759e-08, 1, 0, 0, 0)
+shape = SubResource("CapsuleShape3D_xs1qg")
+
+[node name="CapsuleMesh" type="MeshInstance3D" parent="Torso/Chest/LeftShoulder/LeftArm/Forearm/Capsule"]
+transform = Transform3D(1, -3.55271e-15, 0, 3.55271e-15, 1, 0, 0, 0, 1, 0, -0.328439, 0)
+mesh = SubResource("CapsuleMesh_qqkhp")
+
+[node name="Capsule" type="Node3D" parent="Torso/Chest/LeftShoulder/LeftArm"]
+transform = Transform3D(-4.37114e-08, 1, 0, -1, -4.37114e-08, 0, 0, 0, 1, 2.34126, 0, 0)
+
+[node name="ForceHandler" type="Node" parent="Torso/Chest/LeftShoulder/LeftArm/Capsule"]
+script = ExtResource("1_131kf")
+Thickness = 0.3
+
+[node name="Body" type="StaticBody3D" parent="Torso/Chest/LeftShoulder/LeftArm/Capsule"]
+
+[node name="CapsuleShape" type="CollisionShape3D" parent="Torso/Chest/LeftShoulder/LeftArm/Capsule/Body"]
+transform = Transform3D(1, -1.49012e-08, -1.49012e-08, 0, 1, 1.11759e-08, 0, 1.11759e-08, 1, 0, 0, 0)
+shape = SubResource("CapsuleShape3D_xs1qg")
+
+[node name="CapsuleMesh" type="MeshInstance3D" parent="Torso/Chest/LeftShoulder/LeftArm/Capsule"]
+transform = Transform3D(1, -3.55271e-15, 0, 3.55271e-15, 1, 0, 0, 0, 1, 0, -0.328439, 0)
+mesh = SubResource("CapsuleMesh_qqkhp")
+
+[node name="RightShoulder" type="Node3D" parent="Torso/Chest"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.83274, 6.05934, 1.84863)
+
+[node name="ForceHandler" type="Node" parent="Torso/Chest/RightShoulder"]
+script = ExtResource("1_131kf")
+Thickness = 0.3
+
+[node name="Body" type="StaticBody3D" parent="Torso/Chest/RightShoulder"]
+
+[node name="SphereShape" type="CollisionShape3D" parent="Torso/Chest/RightShoulder/Body"]
+shape = SubResource("SphereShape3D_icm16")
+
+[node name="SphereMesh" type="MeshInstance3D" parent="Torso/Chest/RightShoulder"]
+mesh = SubResource("SphereMesh_lybim")
+
+[node name="RightArm" type="Node3D" parent="Torso/Chest/RightShoulder"]
+transform = Transform3D(-1, 0, -8.74228e-08, 0, 1, 0, 8.74228e-08, 0, -1, -1.66642, -1.33213, 0)
+
+[node name="Forearm" type="Node3D" parent="Torso/Chest/RightShoulder/RightArm"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.81593, 4.76837e-07, 0)
+
+[node name="Hand" type="Node3D" parent="Torso/Chest/RightShoulder/RightArm/Forearm"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.49537, 0, 0)
+script = ExtResource("2_7jbhc")
+chainLength = 2
+
+[node name="Hand_End" type="Node3D" parent="Torso/Chest/RightShoulder/RightArm/Forearm/Hand"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.62422, 0, 0)
+
+[node name="Capsule" type="Node3D" parent="Torso/Chest/RightShoulder/RightArm/Forearm/Hand"]
+transform = Transform3D(-4.37114e-08, 1, 0, -1, -4.37114e-08, 0, 0, 0, 1, 1.67949, 0, 0)
+
+[node name="ForceHandler" type="Node" parent="Torso/Chest/RightShoulder/RightArm/Forearm/Hand/Capsule"]
+script = ExtResource("1_131kf")
+Thickness = 0.3
+
+[node name="Body" type="StaticBody3D" parent="Torso/Chest/RightShoulder/RightArm/Forearm/Hand/Capsule"]
+
+[node name="CapsuleShape" type="CollisionShape3D" parent="Torso/Chest/RightShoulder/RightArm/Forearm/Hand/Capsule/Body"]
+transform = Transform3D(1, -1.49012e-08, -1.49012e-08, 0, 1, 1.11759e-08, 0, 1.11759e-08, 1, 0, 0, 0)
+shape = SubResource("CapsuleShape3D_jjnow")
+
+[node name="CapsuleMesh" type="MeshInstance3D" parent="Torso/Chest/RightShoulder/RightArm/Forearm/Hand/Capsule"]
+transform = Transform3D(1, -3.55271e-15, 0, 3.55271e-15, 1, 0, 0, 0, 1, 0, 0, 0)
+mesh = SubResource("CapsuleMesh_ekkq1")
+
+[node name="Capsule" type="Node3D" parent="Torso/Chest/RightShoulder/RightArm/Forearm"]
+transform = Transform3D(-4.37114e-08, 1, 0, -1, -4.37114e-08, 0, 0, 0, 1, 2.34126, 0, 0)
+
+[node name="ForceHandler" type="Node" parent="Torso/Chest/RightShoulder/RightArm/Forearm/Capsule"]
+script = ExtResource("1_131kf")
+Thickness = 0.3
+
+[node name="Body" type="StaticBody3D" parent="Torso/Chest/RightShoulder/RightArm/Forearm/Capsule"]
+
+[node name="CapsuleShape" type="CollisionShape3D" parent="Torso/Chest/RightShoulder/RightArm/Forearm/Capsule/Body"]
+transform = Transform3D(1, -1.49012e-08, -1.49012e-08, 0, 1, 1.11759e-08, 0, 1.11759e-08, 1, 0, 0, 0)
+shape = SubResource("CapsuleShape3D_xs1qg")
+
+[node name="CapsuleMesh" type="MeshInstance3D" parent="Torso/Chest/RightShoulder/RightArm/Forearm/Capsule"]
+transform = Transform3D(1, -3.55271e-15, 0, 3.55271e-15, 1, 0, 0, 0, 1, 0, -0.328439, 0)
+mesh = SubResource("CapsuleMesh_qqkhp")
+
+[node name="Capsule" type="Node3D" parent="Torso/Chest/RightShoulder/RightArm"]
+transform = Transform3D(-4.37114e-08, 1, 0, -1, -4.37114e-08, 0, 0, 0, 1, 2.34126, 0, 0)
+
+[node name="ForceHandler" type="Node" parent="Torso/Chest/RightShoulder/RightArm/Capsule"]
+script = ExtResource("1_131kf")
+Thickness = 0.3
+
+[node name="Body" type="StaticBody3D" parent="Torso/Chest/RightShoulder/RightArm/Capsule"]
+
+[node name="CapsuleShape" type="CollisionShape3D" parent="Torso/Chest/RightShoulder/RightArm/Capsule/Body"]
+transform = Transform3D(1, -1.49012e-08, -1.49012e-08, 0, 1, 1.11759e-08, 0, 1.11759e-08, 1, 0, 0, 0)
+shape = SubResource("CapsuleShape3D_xs1qg")
+
+[node name="CapsuleMesh" type="MeshInstance3D" parent="Torso/Chest/RightShoulder/RightArm/Capsule"]
+transform = Transform3D(1, -3.55271e-15, 0, 3.55271e-15, 1, 0, 0, 0, 1, 0, -0.328439, 0)
+mesh = SubResource("CapsuleMesh_qqkhp")
+
+[node name="ForceHandler" type="Node" parent="Torso/Chest"]
+script = ExtResource("1_131kf")
+Thickness = 0.3
+
+[node name="Body" type="StaticBody3D" parent="Torso/Chest"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.12906, 0.842875)
+
+[node name="SphereShape" type="CollisionShape3D" parent="Torso/Chest/Body"]
+shape = SubResource("SphereShape3D_t2112")
+
+[node name="SphereMesh" type="MeshInstance3D" parent="Torso/Chest"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.12906, 0.842875)
+mesh = SubResource("SphereMesh_h1sst")
+
+[node name="ForceHandler" type="Node" parent="Torso"]
+script = ExtResource("1_131kf")
+Thickness = 0.3
+
+[node name="Body" type="StaticBody3D" parent="Torso"]
+
+[node name="CapsuleShape" type="CollisionShape3D" parent="Torso/Body"]
+transform = Transform3D(1, -1.49012e-08, -1.49012e-08, 0, 1, 1.11759e-08, 0, 1.11759e-08, 1, 0, 0, 0)
+shape = SubResource("CapsuleShape3D_yco1a")
+
+[node name="CapsuleMesh" type="MeshInstance3D" parent="Torso"]
+transform = Transform3D(1, -1.49012e-08, -1.19209e-07, 0, 1, -1.86265e-09, 0, 9.31323e-09, 1, 0, 0, 0)
+mesh = SubResource("CapsuleMesh_ftg1v")
+
+[node name="RightLeg" type="Node3D" parent="."]
+transform = Transform3D(-4.37114e-08, 1, 0, -1, -4.37114e-08, 0, 0, 0, 1, -3.315, -0.715575, -0.833)
+
+[node name="Foot" type="Node3D" parent="RightLeg"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.49537, 0, 0)
+
+[node name="Hand_End" type="Node3D" parent="RightLeg/Foot"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.47904, 0, 0)
+script = ExtResource("2_7jbhc")
+chainLength = 2
+
+[node name="Capsule" type="Node3D" parent="RightLeg/Foot"]
+transform = Transform3D(-4.37114e-08, 1, 0, -1, -4.37114e-08, 0, 0, 0, 1, 1.67949, 0, 0)
+
+[node name="ForceHandler" type="Node" parent="RightLeg/Foot/Capsule"]
+script = ExtResource("1_131kf")
+Thickness = 0.3
+
+[node name="Body" type="StaticBody3D" parent="RightLeg/Foot/Capsule"]
+
+[node name="CapsuleShape" type="CollisionShape3D" parent="RightLeg/Foot/Capsule/Body"]
+transform = Transform3D(1, -1.49012e-08, -1.49012e-08, 0, 1, 1.11759e-08, 0, 1.11759e-08, 1, 0, 0, 0)
+shape = SubResource("CapsuleShape3D_jjnow")
+
+[node name="CapsuleMesh" type="MeshInstance3D" parent="RightLeg/Foot/Capsule"]
+transform = Transform3D(1, -3.55271e-15, 0, 3.55271e-15, 1, 0, 0, 0, 1, 0, 0, 0)
+mesh = SubResource("CapsuleMesh_ekkq1")
+
+[node name="Capsule" type="Node3D" parent="RightLeg"]
+transform = Transform3D(-4.37114e-08, 1, 0, -1, -4.37114e-08, 0, 0, 0, 1, 2.34126, 0, 0)
+
+[node name="ForceHandler" type="Node" parent="RightLeg/Capsule"]
+script = ExtResource("1_131kf")
+Thickness = 0.3
+
+[node name="Body" type="StaticBody3D" parent="RightLeg/Capsule"]
+
+[node name="CapsuleShape" type="CollisionShape3D" parent="RightLeg/Capsule/Body"]
+transform = Transform3D(1, -1.49012e-08, -1.49012e-08, 0, 1, 1.11759e-08, 0, 1.11759e-08, 1, 0, 0, 0)
+shape = SubResource("CapsuleShape3D_xs1qg")
+
+[node name="CapsuleMesh" type="MeshInstance3D" parent="RightLeg/Capsule"]
+transform = Transform3D(1, -3.55271e-15, 0, 3.55271e-15, 1, 0, 0, 0, 1, 0, -0.328439, 0)
+mesh = SubResource("CapsuleMesh_qqkhp")
+
+[node name="LeftLeg" type="Node3D" parent="."]
+transform = Transform3D(-4.37114e-08, 1, 0, -1, -4.37114e-08, 0, 0, 0, 1, 3.31505, -0.715353, -0.833206)
+
+[node name="Foot" type="Node3D" parent="LeftLeg"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.49537, 0, 0)
+
+[node name="Hand_End" type="Node3D" parent="LeftLeg/Foot"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.42591, 0, 0)
+script = ExtResource("2_7jbhc")
+chainLength = 2
+
+[node name="Capsule" type="Node3D" parent="LeftLeg/Foot"]
+transform = Transform3D(-4.37114e-08, 1, 0, -1, -4.37114e-08, 0, 0, 0, 1, 1.67949, 0, 0)
+
+[node name="ForceHandler" type="Node" parent="LeftLeg/Foot/Capsule"]
+script = ExtResource("1_131kf")
+Thickness = 0.3
+
+[node name="Body" type="StaticBody3D" parent="LeftLeg/Foot/Capsule"]
+
+[node name="CapsuleShape" type="CollisionShape3D" parent="LeftLeg/Foot/Capsule/Body"]
+transform = Transform3D(1, -1.49012e-08, -1.49012e-08, 0, 1, 1.11759e-08, 0, 1.11759e-08, 1, 0, 0, 0)
+shape = SubResource("CapsuleShape3D_jjnow")
+
+[node name="CapsuleMesh" type="MeshInstance3D" parent="LeftLeg/Foot/Capsule"]
+transform = Transform3D(1, -3.55271e-15, 0, 3.55271e-15, 1, 0, 0, 0, 1, 0, 0, 0)
+mesh = SubResource("CapsuleMesh_ekkq1")
+
+[node name="Capsule" type="Node3D" parent="LeftLeg"]
+transform = Transform3D(-4.37114e-08, 1, 0, -1, -4.37114e-08, 0, 0, 0, 1, 2.34126, 0, 0)
+
+[node name="ForceHandler" type="Node" parent="LeftLeg/Capsule"]
+script = ExtResource("1_131kf")
+Thickness = 0.3
+
+[node name="Body" type="StaticBody3D" parent="LeftLeg/Capsule"]
+
+[node name="CapsuleShape" type="CollisionShape3D" parent="LeftLeg/Capsule/Body"]
+transform = Transform3D(1, -1.49012e-08, -1.49012e-08, 0, 1, 1.11759e-08, 0, 1.11759e-08, 1, 0, 0, 0)
+shape = SubResource("CapsuleShape3D_xs1qg")
+
+[node name="CapsuleMesh" type="MeshInstance3D" parent="LeftLeg/Capsule"]
+transform = Transform3D(1, -3.55271e-15, 0, 3.55271e-15, 1, 0, 0, 0, 1, 0, -0.328439, 0)
+mesh = SubResource("CapsuleMesh_qqkhp")
