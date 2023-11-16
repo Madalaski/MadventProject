@@ -1,0 +1,32 @@
+[gd_scene load_steps=2 format=3 uid="uid://bqsak0cpji8ee"]
+
+[ext_resource type="Script" path="res://MainMenuHandler.gd" id="1_nhpg5"]
+
+[node name="MainMenu" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="ServerButton" type="Button" parent="."]
+layout_mode = 0
+offset_left = 226.0
+offset_top = 53.0
+offset_right = 577.0
+offset_bottom = 293.0
+text = "Play As Colossus"
+
+[node name="ClientButton" type="Button" parent="."]
+offset_left = 228.0
+offset_top = 314.0
+offset_right = 579.0
+offset_bottom = 554.0
+text = "Play As Player"
+
+[node name="MainMenuHandler" type="Node" parent="."]
+script = ExtResource("1_nhpg5")
+
+[connection signal="pressed" from="ServerButton" to="MainMenuHandler" method="_on_server_button_pressed"]
+[connection signal="pressed" from="ClientButton" to="MainMenuHandler" method="_on_client_button_pressed"]

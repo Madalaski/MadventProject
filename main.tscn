@@ -1,11 +1,15 @@
-[gd_scene load_steps=14 format=3 uid="uid://cx8ml2ge878ga"]
+[gd_scene load_steps=23 format=3 uid="uid://cx8ml2ge878ga"]
 
+[ext_resource type="Script" path="res://BigController.cs" id="1_0o5ht"]
 [ext_resource type="Script" path="res://PlayerMovement.cs" id="1_itq1p"]
 [ext_resource type="Script" path="res://CameraFollow.cs" id="2_g8fbf"]
 [ext_resource type="Script" path="res://PlayerClimbing.cs" id="2_qfrh6"]
+[ext_resource type="PackedScene" uid="uid://ng1c875cdyot" path="res://DamageZone.tscn" id="2_tqwcy"]
+[ext_resource type="Script" path="res://Health.cs" id="4_rwgp0"]
 [ext_resource type="Script" path="res://ColossusMovement.cs" id="5_i518l"]
-[ext_resource type="Script" path="res://PositionTween.cs" id="6_7wc76"]
+[ext_resource type="Script" path="res://Stamina.cs" id="5_l7sp5"]
 [ext_resource type="PackedScene" uid="uid://bfxbkcwf0yxs5" path="res://Colossus.tscn" id="6_gk2cp"]
+[ext_resource type="Script" path="res://ForceHandler.cs" id="7_knk8e"]
 
 [sub_resource type="SphereShape3D" id="SphereShape3D_6r0m3"]
 
@@ -25,7 +29,35 @@ size = Vector3(20, 0.1, 20)
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_r1s2b"]
 albedo_color = Color(0, 0.0156863, 1, 1)
 
+[sub_resource type="SphereMesh" id="SphereMesh_d2kxe"]
+radius = 5.0
+height = 10.0
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_6ahha"]
+radius = 5.0
+
+[sub_resource type="SphereMesh" id="SphereMesh_qrpfj"]
+radius = 5.0
+height = 10.0
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_xs1qg"]
+radius = 1.5
+height = 5.0
+
+[sub_resource type="CapsuleMesh" id="CapsuleMesh_qqkhp"]
+radius = 1.5
+height = 5.0
+
 [node name="Main" type="Node3D"]
+
+[node name="BigController" type="Node" parent="." node_paths=PackedStringArray("colossus", "leftLegT", "rightLegT", "leftArmT", "rightArmT")]
+script = ExtResource("1_0o5ht")
+damageZone = ExtResource("2_tqwcy")
+colossus = NodePath("../Colossus")
+leftLegT = NodePath("../TargetParent/LeftLeg")
+rightLegT = NodePath("../TargetParent/RightLeg")
+leftArmT = NodePath("../TargetParent/LeftArm")
+rightArmT = NodePath("../TargetParent/RightArm")
 
 [node name="Player" type="RigidBody3D" parent="."]
 
@@ -36,14 +68,21 @@ shape = SubResource("SphereShape3D_6r0m3")
 mesh = SubResource("SphereMesh_ow8gu")
 surface_material_override/0 = SubResource("StandardMaterial3D_e4mmk")
 
-[node name="PlayerMovement" type="Node" parent="Player" node_paths=PackedStringArray("camera")]
+[node name="PlayerMovement" type="Node" parent="Player" node_paths=PackedStringArray("camera", "bigController")]
 script = ExtResource("1_itq1p")
 MovementForces = PackedFloat32Array(65, 15, 20)
 DragCoefficients = PackedFloat32Array(5, 1, 5)
 camera = NodePath("../../CameraParent/MainCamera")
+bigController = NodePath("../../BigController")
 
 [node name="PlayerClimbing" type="Node" parent="Player"]
 script = ExtResource("2_qfrh6")
+
+[node name="Health" type="Node" parent="Player"]
+script = ExtResource("4_rwgp0")
+
+[node name="Stamina" type="Node" parent="Player"]
+script = ExtResource("5_l7sp5")
 
 [node name="Floor" type="StaticBody3D" parent="."]
 transform = Transform3D(50, 0, 0, 0, 1, 0, 0, 0, 50, 0, -2.36824, 0)
@@ -102,9 +141,6 @@ script = ExtResource("5_i518l")
 
 [node name="RightLeg" type="Node3D" parent="TargetParent"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6.38837, -1.95874, -13.8827)
-script = ExtResource("6_7wc76")
-relativePosition = Vector3(0, 0, -15)
-timeTaken = 9.0
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="TargetParent/RightLeg"]
 mesh = SubResource("SphereMesh_s205n")
@@ -112,9 +148,6 @@ surface_material_override/0 = SubResource("StandardMaterial3D_r1s2b")
 
 [node name="LeftLeg" type="Node3D" parent="TargetParent"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6.64882, -1.95874, -27.5743)
-script = ExtResource("6_7wc76")
-relativePosition = Vector3(0, 0, 15)
-timeTaken = 9.0
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="TargetParent/LeftLeg"]
 mesh = SubResource("SphereMesh_s205n")
@@ -122,22 +155,45 @@ surface_material_override/0 = SubResource("StandardMaterial3D_r1s2b")
 
 [node name="RightArm" type="Node3D" parent="TargetParent"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -22.3359, 16.9675, -13.8827)
-script = ExtResource("6_7wc76")
-relativePosition = Vector3(10, 0, -15)
-timeTaken = 15.0
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="TargetParent/RightArm"]
-mesh = SubResource("SphereMesh_s205n")
+visible = false
+mesh = SubResource("SphereMesh_d2kxe")
 surface_material_override/0 = SubResource("StandardMaterial3D_r1s2b")
+
+[node name="RightArmDetector" type="Area3D" parent="TargetParent/RightArm"]
+
+[node name="RightArmDetectorShape" type="CollisionShape3D" parent="TargetParent/RightArm/RightArmDetector"]
+shape = SubResource("SphereShape3D_6ahha")
 
 [node name="LeftArm" type="Node3D" parent="TargetParent"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 24.5644, 15.592, -27.7654)
-script = ExtResource("6_7wc76")
-relativePosition = Vector3(-5, 0, 15)
-timeTaken = 15.0
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="TargetParent/LeftArm"]
-mesh = SubResource("SphereMesh_s205n")
+visible = false
+mesh = SubResource("SphereMesh_qrpfj")
 surface_material_override/0 = SubResource("StandardMaterial3D_r1s2b")
+
+[node name="LeftArmDetector" type="Area3D" parent="TargetParent/LeftArm"]
+
+[node name="LeftArmDetectorShape" type="CollisionShape3D" parent="TargetParent/LeftArm/LeftArmDetector"]
+shape = SubResource("SphereShape3D_6ahha")
+
+[node name="Capsule" type="Node3D" parent="."]
+transform = Transform3D(1, 1.06581e-14, 0, -1.06581e-14, 1, 0, 0, 0, 1, 2.34126, 0.294709, 0)
+visible = false
+
+[node name="ForceHandler" type="Node" parent="Capsule"]
+script = ExtResource("7_knk8e")
+Thickness = 0.3
+
+[node name="Body" type="StaticBody3D" parent="Capsule"]
+
+[node name="CapsuleShape" type="CollisionShape3D" parent="Capsule/Body"]
+transform = Transform3D(1, -1.49012e-08, -1.49012e-08, 0, 1, 1.11759e-08, 0, 1.11759e-08, 1, 0, 0, 0)
+shape = SubResource("CapsuleShape3D_xs1qg")
+
+[node name="CapsuleMesh" type="MeshInstance3D" parent="Capsule"]
+mesh = SubResource("CapsuleMesh_qqkhp")
 
 [editable path="Colossus"]

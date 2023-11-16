@@ -20,9 +20,24 @@ public partial class CameraFollow : Node
 	StaticBody3D floor;
 
 	[Export]
+	Area3D leftArmDetector;
+
+	[Export]
+	Area3D rightArmDetector;
+
+	[Export]
 	float BaseCameraDistance = 10f;
 
+	private Node3D movingNode = null;
+	private Node3D DummyNode = null;
+
+	private float movingDistance = 0f;
+
 	private Vector2 mouseMotion = Vector2.Zero;
+	private Vector2 mousePosition = Vector2.Zero;
+
+	private bool leftClickDown = false;
+	private bool rightClickDown = false;
 
 	// Called when the node enters the scene tree for the first time.
 	public override void _Ready()
@@ -75,14 +90,99 @@ public partial class CameraFollow : Node
 			CamT.Origin = CamT.Origin.Lerp(new Vector3(0f, 0f, CameraDistance), (float)delta * 5f);
 			Camera.Transform = CamT;
 		}
+
+		if (movingNode != null)
+		{
+			Vector3 origin = Camera.ProjectRayOrigin(mousePosition);
+			Vector3 newPosition = origin + (Camera.ProjectRayNormal(mousePosition) * movingDistance);
+			DummyNode.GlobalPosition = newPosition;
+
+			if (leftClickDown)
+			{
+				if (colossus != null)
+				{
+					colossus.Rpc("MoveArmNode", movingNode.GetPath(), DummyNode.GlobalPosition, 1f);
+				}
+
+				DummyNode.QueueFree();
+				DummyNode = null;
+				movingNode = null;
+				leftClickDown = false;
+			}
+		}
+
+		// Handle Input
+		if (movingNode == null && floor != null && colossus != null && Input.MouseMode != Input.MouseModeEnum.Captured)
+		{
+			var spaceState = floor.GetWorld3D().DirectSpaceState;
+			var from = Camera.ProjectRayOrigin(mousePosition);
+			var to = from + Camera.ProjectRayNormal(mousePosition) * 1000f;
+			var query = PhysicsRayQueryParameters3D.Create(from, to);
+			query.CollideWithAreas = true;
+			var result = spaceState.IntersectRay(query);
+
+			if (result.Count > 0)
+			{
+				Node3D collider = result["collider"].As<Node3D>();
+				if (collider == floor)
+				{
+					if (leftClickDown)
+					{
+						colossus.Rpc("MoveLeftLeg", result["position"].As<Vector3>(), 1f);
+					}
+					
+					if (rightClickDown)
+					{
+						colossus.Rpc("MoveRightLeg", result["position"].As<Vector3>(), 1f);
+					}
+				}
+				else if (leftArmDetector != null && rightArmDetector != null)
+				{
+					if (collider == leftArmDetector)
+					{
+						leftArmDetector.GetParent().GetChild<Node3D>(0).Show();
+						if (leftClickDown)
+						{
+							movingNode = leftArmDetector.GetParent<Node3D>();
+							CreateDummyNode(movingNode.GlobalPosition);
+							movingDistance = from.DistanceTo(movingNode.GlobalPosition);
+						}
+					}
+					else
+					{
+						leftArmDetector.GetParent().GetChild<Node3D>(0).Hide();
+					}
+
+					if (collider == rightArmDetector)
+					{
+						rightArmDetector.GetParent().GetChild<Node3D>(0).Show();
+						if (leftClickDown)
+						{
+							movingNode = rightArmDetector.GetParent<Node3D>();
+							CreateDummyNode(movingNode.GlobalPosition);
+							movingDistance = from.DistanceTo(movingNode.GlobalPosition);
+						}
+					}
+					else
+					{
+						rightArmDetector.GetParent().GetChild<Node3D>(0).Hide();
+					}
+				}
+
+			}
+		}
+
+		leftClickDown = false;
+		rightClickDown = false;
 	}
 
 	public override void _Input(InputEvent @event)
 	{
 		
-		if (@event is InputEventMouseMotion)
+		if (@event is InputEventMouseMotion mouseMotionEvent)
 		{
-			mouseMotion += ((InputEventMouseMotion)@event).Relative;
+			mousePosition = mouseMotionEvent.Position;
+			mouseMotion += mouseMotionEvent.Relative;
 		}
 
 		if (@event is InputEventMouseButton mouseEvent && mouseEvent.Pressed)
@@ -96,24 +196,11 @@ public partial class CameraFollow : Node
 					BaseCameraDistance += 0.5f;
 					break;
 				case MouseButton.Left:
-				{
-					if (floor != null && colossus != null && Input.MouseMode != Input.MouseModeEnum.Captured)
-					{
-						var spaceState = floor.GetWorld3D().DirectSpaceState;
-						var from = Camera.ProjectRayOrigin(mouseEvent.Position);
-        				var to = from + Camera.ProjectRayNormal(mouseEvent.Position) * 1000f;
-						var query = PhysicsRayQueryParameters3D.Create(from, to);
-						var result = spaceState.IntersectRay(query);
-
-						if (result.Count > 0)
-						{
-							if (result["collider"].As<Node3D>() == floor)
-							{
-								colossus.MoveLeftLeg(result["position"].As<Vector3>());
-							}
-						}
-					}
-				} break;
+					leftClickDown = true;
+					break;
+				case MouseButton.Right:
+					rightClickDown = true;
+					break;
 			}
 		}
 
@@ -122,5 +209,16 @@ public partial class CameraFollow : Node
 			Input.MouseMode = Input.MouseMode == Input.MouseModeEnum.Captured ? Input.MouseModeEnum.Visible : Input.MouseModeEnum.Captured;
 			mouseMotion = Vector2.Zero;
 		}
+	}
+
+	private void CreateDummyNode(Vector3 position)
+	{
+		MeshInstance3D dummyNode = new MeshInstance3D();
+		SphereMesh mesh = new SphereMesh();
+		mesh.Radius = 5f;
+		mesh.Height = 10f;
+		dummyNode.Mesh = mesh;
+		DummyNode = dummyNode;
+		AddChild(dummyNode);
 	}
 }
