@@ -6,7 +6,7 @@
             "type": "coreclr",
             "request": "launch",
             "preLaunchTask": "build",
-            "program": "C:/Users/Matt/Downloads/Godot/Godot_v4.2-beta4_mono_win64.exe",
+            "program": "C:/Users/Matt/Downloads/Godot/Godot.exe",
             "args": [],
             "cwd": "${workspaceFolder}",
             "stopAtEntry": false,

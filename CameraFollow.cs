@@ -7,6 +7,8 @@ public partial class CameraFollow : Node
 	[Export]
 	BigController colossus;
 
+	private ColossusMovement movement = null;
+
 	[Export]
 	Camera3D Camera;
 
@@ -26,10 +28,14 @@ public partial class CameraFollow : Node
 	Area3D rightArmDetector;
 
 	[Export]
-	float BaseCameraDistance = 10f;
+	Node3D leftLegNode;
 
-	private Node3D movingNode = null;
-	private Node3D DummyNode = null;
+	[Export]
+	Node3D rightLegNode;
+
+	[Export]
+	float BaseCameraDistance = 10f;
+	private bool movingLeg = false;
 
 	private float movingDistance = 0f;
 
@@ -43,11 +49,19 @@ public partial class CameraFollow : Node
 	public override void _Ready()
 	{
 		Input.MouseMode = Input.MouseModeEnum.Captured;
+
+		if (colossus != null)
+		{
+			movement = colossus.GetNode<ColossusMovement>("ColossusMovement");
+		}
 	}
 
 	// Called every frame. 'delta' is the elapsed time since the previous frame.
 	public override void _Process(double delta)
 	{
+		if (GetParent<Node3D>().Visible == false)
+			return;
+
 		float CameraDistance = BaseCameraDistance;
 
 		if (floor != null)
@@ -91,28 +105,46 @@ public partial class CameraFollow : Node
 			Camera.Transform = CamT;
 		}
 
-		if (movingNode != null)
+		if (movement != null && movement.IsMovingNode())
 		{
-			Vector3 origin = Camera.ProjectRayOrigin(mousePosition);
-			Vector3 newPosition = origin + (Camera.ProjectRayNormal(mousePosition) * movingDistance);
-			DummyNode.GlobalPosition = newPosition;
+			if (movingLeg)
+			{
+				var spaceState = floor.GetWorld3D().DirectSpaceState;
+				var from = Camera.ProjectRayOrigin(mousePosition);
+				var to = from + Camera.ProjectRayNormal(mousePosition) * 1000f;
+				var query = PhysicsRayQueryParameters3D.Create(from, to);
+				query.CollideWithAreas = true;
+				var result = spaceState.IntersectRay(query);
+
+				if (result.Count > 0)
+				{
+					movement.UpdateMovingNode(result["position"].As<Vector3>());
+				}
+			}
+			else
+			{
+				Vector3 origin = Camera.ProjectRayOrigin(mousePosition);
+				Vector3 newPosition = origin + (Camera.ProjectRayNormal(mousePosition) * movingDistance);
+				movement.UpdateMovingNode(newPosition);
+			}
 
 			if (leftClickDown)
 			{
-				if (colossus != null)
-				{
-					colossus.Rpc("MoveArmNode", movingNode.GetPath(), DummyNode.GlobalPosition, 1f);
-				}
-
-				DummyNode.QueueFree();
-				DummyNode = null;
-				movingNode = null;
+				movement.ReleaseMovingNode(false);
+				movingLeg = false;
 				leftClickDown = false;
+			}
+
+			if (rightClickDown)
+			{
+				movement.ReleaseMovingNode(true);
+				movingLeg = false;
+				rightClickDown = false;
 			}
 		}
 
 		// Handle Input
-		if (movingNode == null && floor != null && colossus != null && Input.MouseMode != Input.MouseModeEnum.Captured)
+		if (movement != null && !movement.IsMovingNode() && floor != null && colossus != null && Input.MouseMode != Input.MouseModeEnum.Captured)
 		{
 			var spaceState = floor.GetWorld3D().DirectSpaceState;
 			var from = Camera.ProjectRayOrigin(mousePosition);
@@ -128,12 +160,14 @@ public partial class CameraFollow : Node
 				{
 					if (leftClickDown)
 					{
-						colossus.Rpc("MoveLeftLeg", result["position"].As<Vector3>(), 1f);
+						movement.StartMovingNode(leftLegNode);
+						movingLeg = true;
 					}
 					
 					if (rightClickDown)
 					{
-						colossus.Rpc("MoveRightLeg", result["position"].As<Vector3>(), 1f);
+						movement.StartMovingNode(rightLegNode);
+						movingLeg = true;
 					}
 				}
 				else if (leftArmDetector != null && rightArmDetector != null)
@@ -143,9 +177,8 @@ public partial class CameraFollow : Node
 						leftArmDetector.GetParent().GetChild<Node3D>(0).Show();
 						if (leftClickDown)
 						{
-							movingNode = leftArmDetector.GetParent<Node3D>();
-							CreateDummyNode(movingNode.GlobalPosition);
-							movingDistance = from.DistanceTo(movingNode.GlobalPosition);
+							movement.StartMovingNode(leftArmDetector.GetParent<Node3D>());
+							movingDistance = from.DistanceTo(leftArmDetector.GetParent<Node3D>().GlobalPosition);
 						}
 					}
 					else
@@ -158,9 +191,8 @@ public partial class CameraFollow : Node
 						rightArmDetector.GetParent().GetChild<Node3D>(0).Show();
 						if (leftClickDown)
 						{
-							movingNode = rightArmDetector.GetParent<Node3D>();
-							CreateDummyNode(movingNode.GlobalPosition);
-							movingDistance = from.DistanceTo(movingNode.GlobalPosition);
+							movement.StartMovingNode(rightArmDetector.GetParent<Node3D>());
+							movingDistance = from.DistanceTo(rightArmDetector.GetParent<Node3D>().GlobalPosition);
 						}
 					}
 					else
@@ -209,16 +241,5 @@ public partial class CameraFollow : Node
 			Input.MouseMode = Input.MouseMode == Input.MouseModeEnum.Captured ? Input.MouseModeEnum.Visible : Input.MouseModeEnum.Captured;
 			mouseMotion = Vector2.Zero;
 		}
-	}
-
-	private void CreateDummyNode(Vector3 position)
-	{
-		MeshInstance3D dummyNode = new MeshInstance3D();
-		SphereMesh mesh = new SphereMesh();
-		mesh.Radius = 5f;
-		mesh.Height = 10f;
-		dummyNode.Mesh = mesh;
-		DummyNode = dummyNode;
-		AddChild(dummyNode);
 	}
 }

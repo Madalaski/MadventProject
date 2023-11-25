@@ -1,6 +1,53 @@
 using Godot;
 using Godot.Collections;
 using System;
+using System.Collections.Generic;
+using System.Linq;
+
+public struct LimbMovement
+{
+	public LimbIKTarget nodeToMove;
+	public Vector3 startPosition;
+	public Vector3 endPosition;
+
+	public double startTime;
+	public double endTime;
+
+	public float legHeight = 0f;
+
+	public bool generateDamageZone = false;
+
+	public LimbMovement(LimbIKTarget _nodeToMove, Vector3 _startPosition, Vector3 _endPosition, double _startTime, float _speed)
+	{
+		nodeToMove = _nodeToMove;
+		startPosition = _startPosition;
+		endPosition = _endPosition;
+		startTime = _startTime;
+		endTime = startTime + (double)(startPosition.DistanceTo(endPosition) / _speed);
+	}
+
+	public bool IsActive(double currentTime)
+	{
+		return currentTime >= startTime && currentTime <= endTime;
+	}
+
+	public bool HasEnded(double currentTime)
+	{
+		return currentTime > endTime;
+	}
+
+	public Vector3 GetCurrentPosition(double currentTime)
+	{
+		float weight = (float)((currentTime - startTime) / (endTime - startTime));
+
+		if (legHeight <= 0f)
+			return startPosition.Lerp(endPosition, weight);
+
+		Vector3 initial = startPosition.Lerp(endPosition, weight);
+		initial.Y += Mathf.Sin(Mathf.Pi * weight) * legHeight;
+		return initial;
+	}
+}
 
 public partial class BigController : Node
 {
@@ -23,7 +70,13 @@ public partial class BigController : Node
 	float armSpeed = 7f;
 
 	[Export]
+	float boostMultiplier = 3f;
+
+	[Export]
 	PackedScene damageZone;
+
+	[Export]
+	PackedScene playerNotification;
 
 	[Export]
 	Node3D colossus;
@@ -42,52 +95,35 @@ public partial class BigController : Node
 
 	Stamina stamina;
 
-	private Vector3 oldLeftLegPosition;
-	private Vector3 oldRightLegPosition;
-	private Vector3 oldArmPosition;
-
-	private Vector3 leftLegPosition;
-	private Vector3 rightLegPosition;
-	private Vector3 armPosition;
-
-	private bool leftLegMoving = false;
-	private bool rightLegMoving = false;
-	private bool armMoving = false;
-
-	private double leftLegMoveStart = 0.0;
-	private double rightLegMoveStart = 0.0;
-	private double armMoveStart = 0.0;
-
-	private float leftLegSpeedMod = 1f;
-	private float rightLegSpeedMod = 1f;
-	private float armSpeedMod = 1f;
-
-	private Node3D armNode = null;
+	List<LimbMovement> limbMovements;
 
 	// Called when the node enters the scene tree for the first time.
 	public override void _Ready()
 	{
+		limbMovements = new List<LimbMovement>();
+
 		if (isServer)
 		{
 			stamina = GetNode<Stamina>("Stamina");
 		}
 
 		CallDeferred("MakeMultiplayer");
-
-		leftLegPosition = leftLegT.GlobalPosition;
-		rightLegPosition = rightLegT.GlobalPosition;
 	}
 
 	public void MakeMultiplayer()
 	{
 		if (isServer)
 		{
+			GetWindow().Title = "SERVER";
+
 			ENetMultiplayerPeer peer = new ENetMultiplayerPeer();
 			peer.CreateServer(8910);
 			Multiplayer.MultiplayerPeer = peer;
 		}
 		else
 		{
+			GetWindow().Title = "CLIENT";
+			
 			ENetMultiplayerPeer peer = new ENetMultiplayerPeer();
 			peer.CreateClient("127.0.0.1", 8910);
 			Multiplayer.MultiplayerPeer = peer;
@@ -97,93 +133,47 @@ public partial class BigController : Node
 		dict["rpc_mode"] = (int)MultiplayerApi.RpcMode.Authority;
 		dict["transfer_mode"] = (int)MultiplayerPeer.TransferModeEnum.Reliable;
 		dict["call_local"] = true;
-
-		RpcConfig("MoveLeftLeg", dict);
-		RpcConfig("MoveRightLeg", dict);
-		RpcConfig("MoveArmNode", dict);
+		RpcConfig("MoveLimbNode", dict);
 
 		Dictionary playerSide = new Dictionary();
 		playerSide["rpc_mode"] = (int)MultiplayerApi.RpcMode.AnyPeer;
 		playerSide["transfer_mode"] = (int)MultiplayerPeer.TransferModeEnum.Unreliable;
 		playerSide["call_local"] = false;
 		RpcConfig("NotifyPlayerPosition", playerSide);
+
+		Dictionary playerSideLocal = new Dictionary();
+		playerSideLocal["rpc_mode"] = (int)MultiplayerApi.RpcMode.AnyPeer;
+		playerSideLocal["transfer_mode"] = (int)MultiplayerPeer.TransferModeEnum.Reliable;
+		playerSideLocal["call_local"] = true;
+		RpcConfig("NotifyPlayerDealtDamage", playerSideLocal);
+		RpcConfig("NotifyPlayerDeath", playerSideLocal);
 	}
 
 	// Called every frame. 'delta' is the elapsed time since the previous frame.
 	public override void _Process(double delta)
 	{
-		if (leftLegMoving)
+		double currentTime = Time.GetUnixTimeFromSystem();
+
+		for (int i = 0; i < limbMovements.Count; i++)
 		{
-			float totalTime = leftLegPosition.DistanceTo(oldLeftLegPosition) / (legSpeed * leftLegSpeedMod);
-			float weight = (float)((Time.GetUnixTimeFromSystem() - leftLegMoveStart) / totalTime);
-
-			if (weight <= 1f)
+			if(limbMovements[i].HasEnded(currentTime))
 			{
-				Vector3 legPosition = leftLegT.GlobalPosition;
-				legPosition = oldLeftLegPosition.Lerp(leftLegPosition, weight);
-				legPosition.Y = Mathf.Sin(Mathf.Pi * weight) * legHeight;
+				if (limbMovements[i].generateDamageZone)
+				{
+					DamageZone newDamageZone = damageZone.Instantiate<DamageZone>();
+					newDamageZone.Basis = newDamageZone.Basis.Scaled(Vector3.One * 10f);
+					newDamageZone.Position = limbMovements[i].endPosition;
+					AddChild(newDamageZone);
+				}
 
-				leftLegT.GlobalPosition = legPosition;
+				limbMovements.RemoveAt(i);
+				--i;
+				continue;
 			}
-			else
+
+			if (limbMovements[i].IsActive(currentTime))
 			{
-				leftLegT.GlobalPosition = leftLegPosition;
-				leftLegMoving = false;
-				leftLegSpeedMod = 1f;
-
-				DamageZone newDamageZone = damageZone.Instantiate<DamageZone>();
-				newDamageZone.Basis = newDamageZone.Basis.Scaled(Vector3.One * 10f);
-				newDamageZone.Position = leftLegPosition;
-				AddChild(newDamageZone);
-			}
-		}
-
-		if (rightLegMoving)
-		{
-			float totalTime = rightLegPosition.DistanceTo(oldRightLegPosition) / (legSpeed * rightLegSpeedMod);
-			float weight = (float)((Time.GetUnixTimeFromSystem() - rightLegMoveStart) / totalTime);
-
-			if (weight < 1f)
-			{
-				Vector3 legPosition = rightLegT.GlobalPosition;
-				legPosition = oldRightLegPosition.Lerp(rightLegPosition, weight);
-				legPosition.Y = Mathf.Sin(Mathf.Pi * weight) * legHeight;
-
-				rightLegT.GlobalPosition = legPosition;
-			}
-			else
-			{
-				rightLegT.GlobalPosition = rightLegPosition;
-				rightLegMoving = false;
-				rightLegSpeedMod = 1f;
-
-				DamageZone newDamageZone = damageZone.Instantiate<DamageZone>();
-				newDamageZone.Basis = newDamageZone.Basis.Scaled(Vector3.One * 10f);
-				newDamageZone.Position = rightLegPosition;
-				AddChild(newDamageZone);
-			}
-		}
-
-		if (armMoving)
-		{
-			float totalTime = armPosition.DistanceTo(oldArmPosition) / (armSpeed * armSpeedMod);
-			float weight = (float)((Time.GetUnixTimeFromSystem() - armMoveStart) / totalTime);
-
-			if (weight < 1f)
-			{
-				armNode.GlobalPosition = oldArmPosition.Lerp(armPosition, weight);;
-			}
-			else
-			{
-				armNode.GlobalPosition = armPosition;
-				armNode = null;
-				armMoving = false;
-				armSpeedMod = 1f;
-
-				DamageZone newDamageZone = damageZone.Instantiate<DamageZone>();
-				newDamageZone.Basis = newDamageZone.Basis.Scaled(Vector3.One * 10f);
-				newDamageZone.Position = armPosition;
-				AddChild(newDamageZone);
+				limbMovements[i].nodeToMove.GlobalPosition = limbMovements[i].GetCurrentPosition(currentTime);
 			}
 		}
 
@@ -207,63 +197,122 @@ public partial class BigController : Node
 
 	public override void _Input(InputEvent @event)
 	{
-		if (@event.IsActionPressed("Jump"))
+	}
+
+	public void MoveLimbNode(NodePath path, Vector3 newPosition)
+	{
+		LimbIKTarget nodeToMove = GetNode<LimbIKTarget>(path);
+
+		int prevIndex = limbMovements.FindIndex(
+		delegate(LimbMovement movement)
 		{
-			if (leftLegMoving && stamina.TryUseStamina(legStaminaCost))
+			return movement.nodeToMove == nodeToMove;
+		}
+		);
+
+		double startTime = Time.GetUnixTimeFromSystem();
+		Vector3 startPosition = nodeToMove.GlobalPosition;
+
+		if (prevIndex != -1)
+		{
+			startTime = limbMovements[prevIndex].endTime;
+			startPosition = limbMovements[prevIndex].endPosition;
+		}
+
+		LimbMovement movement = new LimbMovement(nodeToMove, startPosition, newPosition, startTime, legSpeed);
+		movement.legHeight = legHeight;
+		movement.generateDamageZone = nodeToMove.IsLeg();
+		limbMovements.Add(movement);
+	}
+
+	public void InitiateBoost()
+	{
+		List<int> movementsToSpeedUp = new List<int>();
+
+		for (int i = 0; i < limbMovements.Count; i++)
+		{
+			bool limbFound = false;
+			foreach (int index in movementsToSpeedUp)
 			{
-				Rpc("MoveLeftLeg", leftLegPosition, 3f);
+				if (limbMovements[index].nodeToMove.type == limbMovements[i].nodeToMove.type)
+				{
+					limbFound = true;
+				}
 			}
 
-			if (rightLegMoving && stamina.TryUseStamina(legStaminaCost))
+			if (!limbFound)
 			{
-				Rpc("MoveRightLeg", rightLegPosition, 3f);
-			}
-
-			if (armMoving && stamina.TryUseStamina(armStaminaCost))
-			{
-				Rpc("MoveArmNode", armPosition, 3f);
+				movementsToSpeedUp.Add(i);
 			}
 		}
-	}
 
-	public void MoveLeftLeg(Vector3 newPosition, float speedModifier = 1f)
-	{
-		oldLeftLegPosition = leftLegT.GlobalPosition;
-		leftLegPosition = newPosition;
-		leftLegSpeedMod = speedModifier;
-		leftLegMoving = true;
-		leftLegMoveStart = Time.GetUnixTimeFromSystem();
-	}
+		float staminaCost = 0f;
+		int index_offset = 0;
 
-	public void MoveRightLeg(Vector3 newPosition, float speedModifier = 1f)
-	{
-		oldRightLegPosition = rightLegT.GlobalPosition;
-		rightLegPosition = newPosition;
-		rightLegSpeedMod = speedModifier;
-		rightLegMoving = true;
-		rightLegMoveStart = Time.GetUnixTimeFromSystem();
-	}
+		double startTime = Time.GetUnixTimeFromSystem();
 
-	public void MoveArmNode(NodePath path, Vector3 newPosition, float speedModifier = 1f)
-	{
-		armNode = GetNode<Node3D>(path);
-		oldArmPosition = armNode.GlobalPosition;
-		armPosition = newPosition;
-		armSpeedMod = speedModifier;
-		armMoving = true;
-		armMoveStart = Time.GetUnixTimeFromSystem();
+		foreach (int index in movementsToSpeedUp)
+		{
+			int newIndex = index + index_offset;
+			float speed = 0f;
+
+			if (limbMovements[newIndex].nodeToMove.IsArm())
+			{
+				staminaCost += armStaminaCost;
+				speed = armSpeed;
+			}
+			else if (limbMovements[newIndex].nodeToMove.IsLeg())
+			{
+				staminaCost += legStaminaCost;
+				speed = legSpeed;
+			}
+
+			speed *= boostMultiplier;
+
+			LimbMovement prevMovement = limbMovements[newIndex];
+			LimbMovement newMovement = new LimbMovement(
+				prevMovement.nodeToMove,
+				prevMovement.nodeToMove.GlobalPosition,
+				prevMovement.endPosition,
+				startTime,
+				speed);
+			newMovement.generateDamageZone = true;
+
+			prevMovement.endTime = startTime;
+			prevMovement.endPosition = newMovement.startPosition;
+			limbMovements[newIndex] = prevMovement;
+			limbMovements.Insert(newIndex, newMovement);
+			++index_offset;
+		}
+
+		stamina.UseStamina(staminaCost);
 	}
 
 	public void NotifyPlayerPosition(Vector3 playerPosition)
 	{
 		if (isServer)
 		{
-			DamageZone newDamageZone = damageZone.Instantiate<DamageZone>();
-			newDamageZone.Basis = newDamageZone.Basis.Scaled(Vector3.One * 4f);
-			newDamageZone.Lifetime = 4.0;
-			newDamageZone.ScaleSpeed = 2f;
-			newDamageZone.Position = playerPosition;
-			AddChild(newDamageZone);
+			PlayerLocationNotification notification = playerNotification.Instantiate<PlayerLocationNotification>();
+			notification.Basis = notification.Basis.Scaled(Vector3.One * 1.2f);
+			notification.Lifetime = 4.0;
+			notification.ScaleSpeed = 0.5f;
+			notification.Position = playerPosition;
+			AddChild(notification);
 		}
+	}
+
+	public void NotifyPlayerDealtDamage(int damage)
+	{
+		Health health = GetNode<Health>("Health");
+		health.Damage(damage);
+		if (health.CurrentHealth <= 0)
+		{
+			GetTree().ChangeSceneToFile("res://main_menu.tscn");
+		}
+	}
+
+	public void NotifyPlayerDeath()
+	{
+		GetTree().ChangeSceneToFile("res://main_menu.tscn");
 	}
 }

@@ -1,15 +1,19 @@
-[gd_scene load_steps=23 format=3 uid="uid://cx8ml2ge878ga"]
+[gd_scene load_steps=22 format=3 uid="uid://cx8ml2ge878ga"]
 
 [ext_resource type="Script" path="res://BigController.cs" id="1_0o5ht"]
 [ext_resource type="Script" path="res://PlayerMovement.cs" id="1_itq1p"]
 [ext_resource type="Script" path="res://CameraFollow.cs" id="2_g8fbf"]
 [ext_resource type="Script" path="res://PlayerClimbing.cs" id="2_qfrh6"]
 [ext_resource type="PackedScene" uid="uid://ng1c875cdyot" path="res://DamageZone.tscn" id="2_tqwcy"]
+[ext_resource type="Script" path="res://WeakPointGenerator.cs" id="3_hkv2w"]
+[ext_resource type="PackedScene" uid="uid://b1dehkqltf78l" path="res://WeakPoint.tscn" id="4_b4pns"]
 [ext_resource type="Script" path="res://Health.cs" id="4_rwgp0"]
 [ext_resource type="Script" path="res://ColossusMovement.cs" id="5_i518l"]
 [ext_resource type="Script" path="res://Stamina.cs" id="5_l7sp5"]
 [ext_resource type="PackedScene" uid="uid://bfxbkcwf0yxs5" path="res://Colossus.tscn" id="6_gk2cp"]
+[ext_resource type="Script" path="res://PlayerCombat.cs" id="7_01xjm"]
 [ext_resource type="Script" path="res://ForceHandler.cs" id="7_knk8e"]
+[ext_resource type="Script" path="res://LimbIKTarget.cs" id="13_xgpvd"]
 
 [sub_resource type="SphereShape3D" id="SphereShape3D_6r0m3"]
 
@@ -23,22 +27,6 @@ size = Vector3(20, 0.1, 20)
 
 [sub_resource type="BoxMesh" id="BoxMesh_r1ymv"]
 size = Vector3(20, 0.1, 20)
-
-[sub_resource type="SphereMesh" id="SphereMesh_s205n"]
-
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_r1s2b"]
-albedo_color = Color(0, 0.0156863, 1, 1)
-
-[sub_resource type="SphereMesh" id="SphereMesh_d2kxe"]
-radius = 5.0
-height = 10.0
-
-[sub_resource type="SphereShape3D" id="SphereShape3D_6ahha"]
-radius = 5.0
-
-[sub_resource type="SphereMesh" id="SphereMesh_qrpfj"]
-radius = 5.0
-height = 10.0
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_xs1qg"]
 radius = 1.5
@@ -54,10 +42,21 @@ height = 5.0
 script = ExtResource("1_0o5ht")
 damageZone = ExtResource("2_tqwcy")
 colossus = NodePath("../Colossus")
-leftLegT = NodePath("../TargetParent/LeftLeg")
-rightLegT = NodePath("../TargetParent/RightLeg")
-leftArmT = NodePath("../TargetParent/LeftArm")
-rightArmT = NodePath("../TargetParent/RightArm")
+leftLegT = NodePath("")
+rightLegT = NodePath("")
+leftArmT = NodePath("")
+rightArmT = NodePath("")
+
+[node name="WeakPointGenerator" type="Node" parent="BigController" node_paths=PackedStringArray("colossus")]
+script = ExtResource("3_hkv2w")
+weakPointScene = ExtResource("4_b4pns")
+colossus = NodePath("../../Colossus")
+minHeight = 2.0
+maxHeight = 60.0
+
+[node name="Health" type="Node" parent="BigController"]
+script = ExtResource("4_rwgp0")
+debugName = "MonsterHealth"
 
 [node name="Player" type="RigidBody3D" parent="."]
 
@@ -83,6 +82,10 @@ script = ExtResource("4_rwgp0")
 
 [node name="Stamina" type="Node" parent="Player"]
 script = ExtResource("5_l7sp5")
+
+[node name="PlayerCombat" type="Node" parent="Player" node_paths=PackedStringArray("bigController")]
+script = ExtResource("7_01xjm")
+bigController = NodePath("../../BigController")
 
 [node name="Floor" type="StaticBody3D" parent="."]
 transform = Transform3D(50, 0, 0, 0, 1, 0, 0, 0, 50, 0, -2.36824, 0)
@@ -114,22 +117,22 @@ transform = Transform3D(2, 0, 0, 0, 2, 0, 0, 0, 2, 0.291878, 12.0902, -17.6557)
 
 [node name="Hand" parent="Colossus/Torso/Chest/LeftShoulder/LeftArm/Forearm" index="0" node_paths=PackedStringArray("target")]
 iterations = 5
-target = NodePath("../../../../../../../TargetParent/LeftArm")
+target = NodePath("")
 
 [node name="Hand" parent="Colossus/Torso/Chest/RightShoulder/RightArm/Forearm" index="0" node_paths=PackedStringArray("target")]
 iterations = 5
-target = NodePath("../../../../../../../TargetParent/RightArm")
+target = NodePath("")
 
 [node name="Hand_End" parent="Colossus/RightLeg/Foot" index="0" node_paths=PackedStringArray("target")]
 iterations = 5
-target = NodePath("../../../../TargetParent/RightLeg")
+target = NodePath("")
 
 [node name="CapsuleMesh" parent="Colossus/RightLeg/Capsule" index="2"]
 transform = Transform3D(1, -3.55271e-15, 0, 3.55271e-15, 1, 0, 0, 0, 1, 0, 0, 0)
 
 [node name="Hand_End" parent="Colossus/LeftLeg/Foot" index="0" node_paths=PackedStringArray("target")]
 iterations = 5
-target = NodePath("../../../../TargetParent/LeftLeg")
+target = NodePath("")
 
 [node name="CapsuleMesh" parent="Colossus/LeftLeg/Capsule" index="2"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
@@ -141,43 +144,23 @@ script = ExtResource("5_i518l")
 
 [node name="RightLeg" type="Node3D" parent="TargetParent"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6.38837, -1.95874, -13.8827)
-
-[node name="MeshInstance3D" type="MeshInstance3D" parent="TargetParent/RightLeg"]
-mesh = SubResource("SphereMesh_s205n")
-surface_material_override/0 = SubResource("StandardMaterial3D_r1s2b")
+script = ExtResource("13_xgpvd")
+type = 8
 
 [node name="LeftLeg" type="Node3D" parent="TargetParent"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6.64882, -1.95874, -27.5743)
-
-[node name="MeshInstance3D" type="MeshInstance3D" parent="TargetParent/LeftLeg"]
-mesh = SubResource("SphereMesh_s205n")
-surface_material_override/0 = SubResource("StandardMaterial3D_r1s2b")
+script = ExtResource("13_xgpvd")
+type = 4
 
 [node name="RightArm" type="Node3D" parent="TargetParent"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -22.3359, 16.9675, -13.8827)
-
-[node name="MeshInstance3D" type="MeshInstance3D" parent="TargetParent/RightArm"]
-visible = false
-mesh = SubResource("SphereMesh_d2kxe")
-surface_material_override/0 = SubResource("StandardMaterial3D_r1s2b")
-
-[node name="RightArmDetector" type="Area3D" parent="TargetParent/RightArm"]
-
-[node name="RightArmDetectorShape" type="CollisionShape3D" parent="TargetParent/RightArm/RightArmDetector"]
-shape = SubResource("SphereShape3D_6ahha")
+script = ExtResource("13_xgpvd")
+type = 2
 
 [node name="LeftArm" type="Node3D" parent="TargetParent"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 24.5644, 15.592, -27.7654)
-
-[node name="MeshInstance3D" type="MeshInstance3D" parent="TargetParent/LeftArm"]
-visible = false
-mesh = SubResource("SphereMesh_qrpfj")
-surface_material_override/0 = SubResource("StandardMaterial3D_r1s2b")
-
-[node name="LeftArmDetector" type="Area3D" parent="TargetParent/LeftArm"]
-
-[node name="LeftArmDetectorShape" type="CollisionShape3D" parent="TargetParent/LeftArm/LeftArmDetector"]
-shape = SubResource("SphereShape3D_6ahha")
+script = ExtResource("13_xgpvd")
+type = 1
 
 [node name="Capsule" type="Node3D" parent="."]
 transform = Transform3D(1, 1.06581e-14, 0, -1.06581e-14, 1, 0, 0, 0, 1, 2.34126, 0.294709, 0)

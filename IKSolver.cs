@@ -13,6 +13,9 @@ public partial class IKSolver : Node3D
 	[Export]
 	public Node3D target;
 
+	[Export]
+	public Node3D poleTarget;
+
 	// Called when the node enters the scene tree for the first time.
 	public override void _Ready()
 	{
@@ -88,6 +91,26 @@ public partial class IKSolver : Node3D
 
 		nodes.Reverse();
 		positions.Reverse();
+
+		if (poleTarget != null)
+		{
+			for (int i = 0; i < positions.Count - 2; i++)
+			{
+				Vector3 axis = positions[i+2] - positions[i];
+				Vector3 currentDir = positions[i+1] - positions[i];
+				
+				Vector3 newDir = poleTarget.GlobalPosition - positions[i];
+				Vector3 from = currentDir - currentDir.Project(axis);
+				Vector3 to = newDir - newDir.Project(axis);
+				Quaternion q = new Quaternion(from.Normalized(), to.Normalized());
+				Transform3D rotateT = new Transform3D(new Basis(q), positions[i]);
+				for (int j = i+1; j < positions.Count; j++)
+				{
+					positions[j] = rotateT * positions[j];
+				}
+			}
+		}
+		
 
 		for (int i = 0; i < chainLength; i++)
 		{

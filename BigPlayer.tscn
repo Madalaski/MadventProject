@@ -1,11 +1,16 @@
-[gd_scene load_steps=17 format=3 uid="uid://tu2cfeh71byv"]
+[gd_scene load_steps=27 format=3 uid="uid://tu2cfeh71byv"]
 
 [ext_resource type="PackedScene" uid="uid://bfxbkcwf0yxs5" path="res://Colossus.tscn" id="1_f117k"]
 [ext_resource type="PackedScene" uid="uid://ng1c875cdyot" path="res://DamageZone.tscn" id="2_3k2jl"]
 [ext_resource type="Script" path="res://Health.cs" id="2_sb7y1"]
+[ext_resource type="PackedScene" uid="uid://p1qla8cl4s1b" path="res://PlayerLocationNotification.tscn" id="3_jwr0t"]
 [ext_resource type="Script" path="res://BigController.cs" id="3_pd2qi"]
 [ext_resource type="Script" path="res://Stamina.cs" id="3_vhj4u"]
 [ext_resource type="Script" path="res://CameraFollow.cs" id="3_ybpug"]
+[ext_resource type="Script" path="res://ColossusMovement.cs" id="5_i2t32"]
+[ext_resource type="Script" path="res://LimbIKTarget.cs" id="7_0rq2f"]
+[ext_resource type="PackedScene" uid="uid://clc5dre31iskm" path="res://addons/godot-xr-tools/xr/start_xr.tscn" id="7_ql7cw"]
+[ext_resource type="Script" path="res://VRController.cs" id="8_ewo3x"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_xp30e"]
 size = Vector3(20, 0.1, 20)
@@ -38,12 +43,26 @@ albedo_color = Color(0, 0.0156863, 1, 1)
 [sub_resource type="SphereShape3D" id="SphereShape3D_6xum4"]
 radius = 5.0
 
+[sub_resource type="SphereMesh" id="SphereMesh_31pf5"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ctp7r"]
+albedo_color = Color(0, 0.0156863, 1, 1)
+
+[sub_resource type="SphereMesh" id="SphereMesh_w31wk"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_kto7f"]
+albedo_color = Color(0.00392157, 0, 1, 1)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_2xl7g"]
+albedo_color = Color(1, 0, 0, 1)
+
 [node name="Main" type="Node3D"]
 
 [node name="BigController" type="Node" parent="." node_paths=PackedStringArray("colossus", "leftLegT", "rightLegT", "leftArmT", "rightArmT")]
 script = ExtResource("3_pd2qi")
 isServer = true
 damageZone = ExtResource("2_3k2jl")
+playerNotification = ExtResource("3_jwr0t")
 colossus = NodePath("../Colossus")
 leftLegT = NodePath("../TargetParent/LeftLeg")
 rightLegT = NodePath("../TargetParent/RightLeg")
@@ -55,6 +74,9 @@ script = ExtResource("2_sb7y1")
 
 [node name="Stamina" type="Node" parent="BigController"]
 script = ExtResource("3_vhj4u")
+
+[node name="ColossusMovement" type="Node" parent="BigController"]
+script = ExtResource("5_i2t32")
 
 [node name="Floor" type="StaticBody3D" parent="."]
 transform = Transform3D(50, 0, 0, 0, 1, 0, 0, 0, 50, 0, -2.36824, 0)
@@ -94,6 +116,8 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
 
 [node name="RightLeg" type="Node3D" parent="TargetParent"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6.38837, -1.95874, -13.8827)
+script = ExtResource("7_0rq2f")
+type = 8
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="TargetParent/RightLeg"]
 mesh = SubResource("SphereMesh_m1jjy")
@@ -101,6 +125,8 @@ surface_material_override/0 = SubResource("StandardMaterial3D_ry0ot")
 
 [node name="LeftLeg" type="Node3D" parent="TargetParent"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6.64882, -1.95874, -27.5743)
+script = ExtResource("7_0rq2f")
+type = 4
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="TargetParent/LeftLeg"]
 mesh = SubResource("SphereMesh_m1jjy")
@@ -108,6 +134,8 @@ surface_material_override/0 = SubResource("StandardMaterial3D_ry0ot")
 
 [node name="RightArm" type="Node3D" parent="TargetParent"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -22.3359, 16.9675, -13.8827)
+script = ExtResource("7_0rq2f")
+type = 2
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="TargetParent/RightArm"]
 visible = false
@@ -121,6 +149,8 @@ shape = SubResource("SphereShape3D_effgf")
 
 [node name="LeftArm" type="Node3D" parent="TargetParent"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 24.5644, 15.592, -27.7654)
+script = ExtResource("7_0rq2f")
+type = 1
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="TargetParent/LeftArm"]
 visible = false
@@ -132,13 +162,21 @@ surface_material_override/0 = SubResource("StandardMaterial3D_bethv")
 [node name="LeftArmDetectorShape" type="CollisionShape3D" parent="TargetParent/LeftArm/LeftArmDetector"]
 shape = SubResource("SphereShape3D_6xum4")
 
+[node name="RightLegPole" type="Node3D" parent="TargetParent"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.82368, 1.60713, -29.9585)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="TargetParent/RightLegPole"]
+mesh = SubResource("SphereMesh_31pf5")
+surface_material_override/0 = SubResource("StandardMaterial3D_ctp7r")
+
 [node name="CameraParent" type="Node3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 33.0717, -19.2432)
+visible = false
 
 [node name="MainCamera" type="Camera3D" parent="CameraParent"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 40)
 
-[node name="CameraFollow" type="Node" parent="CameraParent" node_paths=PackedStringArray("colossus", "Camera", "CameraParent", "FollowTarget", "floor", "leftArmDetector", "rightArmDetector")]
+[node name="CameraFollow" type="Node" parent="CameraParent" node_paths=PackedStringArray("colossus", "Camera", "CameraParent", "FollowTarget", "floor", "leftArmDetector", "rightArmDetector", "leftLegNode", "rightLegNode")]
 script = ExtResource("3_ybpug")
 colossus = NodePath("../../BigController")
 Camera = NodePath("../MainCamera")
@@ -147,10 +185,46 @@ FollowTarget = NodePath("../../Colossus/Torso/Chest/Head")
 floor = NodePath("../../Floor")
 leftArmDetector = NodePath("../../TargetParent/LeftArm/LeftArmDetector")
 rightArmDetector = NodePath("../../TargetParent/RightArm/RightArmDetector")
+leftLegNode = NodePath("../../TargetParent/LeftLeg")
+rightLegNode = NodePath("../../TargetParent/RightLeg")
 BaseCameraDistance = 50.0
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
 transform = Transform3D(-0.859293, 0.139635, 0.492055, 0.373941, -0.484862, 0.790618, 0.348977, 0.863372, 0.364423, 66.3423, 0, -94.4082)
 shadow_enabled = true
+
+[node name="StartXR" parent="." instance=ExtResource("7_ql7cw")]
+
+[node name="XROrigin3D" type="XROrigin3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 16.8318)
+current = true
+
+[node name="XRCamera3D" type="XRCamera3D" parent="XROrigin3D"]
+far = 8000.0
+
+[node name="LeftHand" type="XRController3D" parent="XROrigin3D"]
+tracker = &"left_hand"
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="XROrigin3D/LeftHand"]
+mesh = SubResource("SphereMesh_w31wk")
+surface_material_override/0 = SubResource("StandardMaterial3D_kto7f")
+
+[node name="RightHand" type="XRController3D" parent="XROrigin3D"]
+tracker = &"right_hand"
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="XROrigin3D/RightHand"]
+mesh = SubResource("SphereMesh_w31wk")
+surface_material_override/0 = SubResource("StandardMaterial3D_2xl7g")
+
+[node name="VRController" type="Node" parent="XROrigin3D" node_paths=PackedStringArray("movement", "floor", "leftArmDetector", "rightArmDetector", "leftLegT", "rightLegT")]
+script = ExtResource("8_ewo3x")
+movement = NodePath("../../BigController/ColossusMovement")
+floor = NodePath("../../Floor")
+leftArmDetector = NodePath("../../TargetParent/LeftArm/LeftArmDetector")
+rightArmDetector = NodePath("../../TargetParent/RightArm/RightArmDetector")
+leftLegT = NodePath("../../TargetParent/LeftLeg")
+rightLegT = NodePath("../../TargetParent/RightLeg")
+
+[connection signal="input_float_changed" from="XROrigin3D/LeftHand" to="XROrigin3D/VRController" method="LeftHandInputFloatChanged"]
 
 [editable path="Colossus"]
