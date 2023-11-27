@@ -107,10 +107,13 @@ public partial class ForceHandler : Node
 		if (body.GetChildCount() < 4)
 			return;
 
-		PlayerClimbing pc = body.GetChild<PlayerClimbing>(3);
-		if (pc != null)
+		if (body.HasNode("PlayerClimbing"))
 		{
-			pc.forceAreas.Add(selfArea);
+			PlayerClimbing pc = body.GetChild<PlayerClimbing>(3);
+			if (pc != null)
+			{
+				pc.forceAreas.Add(selfArea);
+			}
 		}
 	}
 

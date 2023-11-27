@@ -11,6 +11,14 @@ public partial class Health : Node
 
 	public int CurrentHealth = 100;
 
+	public int MaxHealth = 100;
+
+	[Export]
+	Godot.Range progressBar;
+
+	[Export]
+	TextureRect textureRect;
+
 	// Called when the node enters the scene tree for the first time.
 	public override void _Ready()
 	{
@@ -22,6 +30,16 @@ public partial class Health : Node
 		if (showDebug)
 		{
 			DebugDraw2D.SetText(debugName, CurrentHealth);
+		}
+
+		if (progressBar != null)
+		{
+			progressBar.Value = CurrentHealth;
+		}
+
+		if (textureRect != null)
+		{
+			textureRect.Scale = Vector2.One * (float)CurrentHealth / (float)MaxHealth;
 		}
 	}
 

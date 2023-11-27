@@ -1,0 +1,64 @@
+[gd_resource type="StandardMaterial3D" load_steps=12 format=3 uid="uid://bysowhxm0skhc"]
+
+[sub_resource type="Gradient" id="Gradient_qwtgd"]
+offsets = PackedFloat32Array(0, 0.499076, 1)
+colors = PackedColorArray(0.101858, 0.132813, 0.112403, 1, 0.324219, 0.284582, 0.186202, 1, 0.207031, 0.162261, 0.0804782, 1)
+
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_02txh"]
+noise_type = 2
+frequency = 0.016
+cellular_jitter = 0.925
+
+[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_ueakp"]
+width = 1024
+height = 1024
+seamless = true
+color_ramp = SubResource("Gradient_qwtgd")
+noise = SubResource("FastNoiseLite_02txh")
+
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_vfv4d"]
+noise_type = 2
+frequency = 0.1145
+
+[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_3maky"]
+noise = SubResource("FastNoiseLite_vfv4d")
+
+[sub_resource type="Gradient" id="Gradient_o5xb1"]
+offsets = PackedFloat32Array(0, 0.25878, 0.434381, 0.770795, 1)
+colors = PackedColorArray(0, 0, 0, 1, 0.785156, 0.785156, 0.785156, 1, 1, 1, 1, 1, 0.238281, 0.238281, 0.238281, 1, 1, 1, 1, 1)
+
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_ryexr"]
+noise_type = 4
+frequency = 0.0295
+
+[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_btwq8"]
+width = 2048
+height = 2048
+seamless = true
+as_normal_map = true
+color_ramp = SubResource("Gradient_o5xb1")
+noise = SubResource("FastNoiseLite_ryexr")
+
+[sub_resource type="Gradient" id="Gradient_t8p7d"]
+colors = PackedColorArray(0, 0, 0, 1, 0.3125, 0.3125, 0.3125, 1)
+
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_dij1r"]
+frequency = 0.1191
+
+[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_maatj"]
+seamless = true
+normalize = false
+color_ramp = SubResource("Gradient_t8p7d")
+noise = SubResource("FastNoiseLite_dij1r")
+
+[resource]
+albedo_texture = SubResource("NoiseTexture2D_ueakp")
+metallic_specular = 0.2
+roughness = 0.34
+roughness_texture = SubResource("NoiseTexture2D_maatj")
+normal_enabled = true
+normal_texture = SubResource("NoiseTexture2D_btwq8")
+heightmap_scale = 8.01
+heightmap_texture = SubResource("NoiseTexture2D_3maky")
+uv1_scale = Vector3(0.06, 0.06, 0.06)
+uv1_triplanar = true

@@ -124,8 +124,11 @@ public partial class BigController : Node
 		{
 			GetWindow().Title = "CLIENT";
 			
+			Script clientPolling = ResourceLoader.Load("res://Scenes/ClientPolling.gd") as Script;
 			ENetMultiplayerPeer peer = new ENetMultiplayerPeer();
-			peer.CreateClient("127.0.0.1", 8910);
+			string host_ip_address = clientPolling.Get("host_ip_address").AsString();
+			GD.Print("Getting static ip address: " + host_ip_address);
+			peer.CreateClient(host_ip_address, 8910);
 			Multiplayer.MultiplayerPeer = peer;
 		}
 
@@ -161,7 +164,7 @@ public partial class BigController : Node
 				if (limbMovements[i].generateDamageZone)
 				{
 					DamageZone newDamageZone = damageZone.Instantiate<DamageZone>();
-					newDamageZone.Basis = newDamageZone.Basis.Scaled(Vector3.One * 10f);
+					//newDamageZone.Basis = newDamageZone.Basis.Scaled(Vector3.One * 10f);
 					newDamageZone.Position = limbMovements[i].endPosition;
 					AddChild(newDamageZone);
 				}

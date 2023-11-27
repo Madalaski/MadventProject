@@ -15,6 +15,8 @@ public partial class VRController : Node
 	private Vector3 prevPos = Vector3.Zero;
 	private float prevScale = 0f;
 
+	private Vector3 prevHandOffset = Vector3.One;
+
 	[Export]
 	ColossusMovement movement;
 
@@ -45,6 +47,7 @@ public partial class VRController : Node
 	public override void _Ready()
 	{
 		origin = GetParent<XROrigin3D>();
+		origin.WorldScale = 40f;
 		leftHand = GetParent().GetNode<XRController3D>("LeftHand");
 		rightHand = GetParent().GetNode<XRController3D>("RightHand");
 	}
@@ -190,12 +193,20 @@ public partial class VRController : Node
 			if (!scaling)
 			{
 				prevScale = leftHand.GlobalPosition.DistanceTo(rightHand.GlobalPosition);
+				prevHandOffset = rightHand.GlobalPosition - leftHand.GlobalPosition;
 			}
 			else
 			{
 				float currentScale = leftHand.GlobalPosition.DistanceTo(rightHand.GlobalPosition);
 				origin.WorldScale *= prevScale / currentScale;
 				prevScale = currentScale;
+
+				Vector3 handOffset = rightHand.GlobalPosition - leftHand.GlobalPosition;
+
+				Quaternion q = new Quaternion(prevHandOffset, handOffset);
+				//origin.GlobalBasis = new Basis(q) * origin.GlobalBasis;
+
+				prevHandOffset = handOffset;
 			}
 
 			scaling = true;

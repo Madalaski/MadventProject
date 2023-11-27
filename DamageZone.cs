@@ -9,14 +9,19 @@ public partial class DamageZone : Node3D
 
 	public float ScaleSpeed = 0f;
 
-	public float PushForce = 100f;
+	public float PushForce = 20f;
 	private double startTime = 0;
+
+	private Area3D area;
+	private GpuParticles3D particles;
 
 	// Called when the node enters the scene tree for the first time.
 	public override void _Ready()
 	{
-		Area3D area = GetNode<Area3D>("Area3D");
+		area = GetNode<Area3D>("Area3D");
 		area.BodyEntered += _on_area_3d_body_entered;
+		particles = GetNode<GpuParticles3D>("Particles");
+		particles.Emitting = true;
 		startTime = Time.GetUnixTimeFromSystem();
 	}
 
@@ -25,9 +30,15 @@ public partial class DamageZone : Node3D
 	{
 		Basis = Basis.Scaled(Vector3.One + (Vector3.One * (float)delta * ScaleSpeed));
 
-		DebugDraw3D.DrawSphere(GlobalPosition, GlobalBasis.Scale.X);
+		//DebugDraw3D.DrawSphere(GlobalPosition, GlobalBasis.Scale.X);
 
 		if (Time.GetUnixTimeFromSystem() > startTime + Lifetime)
+		{
+			area.DisableMode = CollisionObject3D.DisableModeEnum.Remove;
+			area.ProcessMode = ProcessModeEnum.Disabled;
+		}
+
+		if (Time.GetUnixTimeFromSystem() > startTime + particles.Lifetime + 3.0)
 		{
 			QueueFree();
 		}
@@ -43,7 +54,7 @@ public partial class DamageZone : Node3D
 			if (body is RigidBody3D rigidBody)
 			{
 				Vector3 direction = ((rigidBody.GlobalPosition - GlobalPosition) + (Vector3.Up * 3f)).Normalized();
-				rigidBody.ApplyForce(direction * PushForce);
+				rigidBody.ApplyImpulse(direction * PushForce);
 			}
 		}
 	}

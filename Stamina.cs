@@ -13,6 +13,12 @@ public partial class Stamina : Node
 
 	private double lastStaminaUse = 0f;
 
+	[Export]
+	TextureProgressBar progressBar;
+
+	[Export]
+	TextureRect textureRect;
+
 	// Called when the node enters the scene tree for the first time.
 	public override void _Ready()
 	{
@@ -21,7 +27,17 @@ public partial class Stamina : Node
 	// Called every frame. 'delta' is the elapsed time since the previous frame.
 	public override void _Process(double delta)
 	{
-		DebugDraw2D.SetText("Stamina", CurrentStamina * 100f);
+		//DebugDraw2D.SetText("Stamina", CurrentStamina * 100f);
+
+		if (progressBar != null)
+		{
+			progressBar.Value = CurrentStamina * 100f;
+		}
+
+		if (textureRect != null)
+		{
+			textureRect.Scale = Vector2.One * CurrentStamina;
+		}
 
 		if (CurrentStamina < 1f)
 		{

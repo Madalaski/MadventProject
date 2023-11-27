@@ -52,6 +52,7 @@ public partial class WeakPointGenerator : Node
 				newWeakPoint.Basis = newWeakPoint.Basis.Scaled(Vector3.One * 1f);
 				body.AddChild(newWeakPoint);
 				newWeakPoint.GlobalPosition = position;
+				newWeakPoint.Damage = 10;
 
 				GD.Print("Hit! Making Weakpoint");
 			}

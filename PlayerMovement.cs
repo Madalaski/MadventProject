@@ -59,6 +59,9 @@ public partial class PlayerMovement : Node
 
 	private double lastTimeNotified = 0;
 
+	private AudioStreamPlayer meowSound;
+	private AudioStreamPlayer monchSound;
+
 	public Vector2 NormalizeInput(Vector2 input)
 	{
 		if (input.LengthSquared() > 1.0f)
@@ -83,6 +86,8 @@ public partial class PlayerMovement : Node
 		climbing = (PlayerClimbing)GetParent().FindChild("PlayerClimbing");
 		health = player.GetNode<Health>("Health");
 		stamina = player.GetNode<Stamina>("Stamina");
+		meowSound = player.GetNode<AudioStreamPlayer>("Audio/MeowSound");
+		monchSound = player.GetNode<AudioStreamPlayer>("Audio/MonchSound");
 		lastTimeNotified = Time.GetUnixTimeFromSystem();
 	}
 
@@ -158,9 +163,10 @@ public partial class PlayerMovement : Node
 			direction.Y = 0;
 			direction = direction.Normalized();
 			Vector3 playerMovementOnGround = ConvertInputToAxis(input * MovementForces[(int)state], direction, Vector3.Up);
-			DebugDraw3D.DrawRay(player.GlobalPosition, playerMovementOnGround.Normalized(), 3f, new Color(1f, 0f, 0f));
+			//DebugDraw3D.DrawRay(player.GlobalPosition, playerMovementOnGround.Normalized(), 3f, new Color(1f, 0f, 0f));
 			if (state != PlayerState.CLIMBING)
 			{
+				player.GetNode<Node3D>("PlayerMesh").LookAt(player.GlobalPosition + player.LinearVelocity.Normalized(), Vector3.Up);
 				player.ApplyForce(playerMovementOnGround);
 			}
 			else
@@ -184,11 +190,16 @@ public partial class PlayerMovement : Node
 					playerMovementOnSurface += quat2 * playerMovementOnSurface;
 				}
 
-				DebugDraw3D.DrawRay(player.GlobalPosition, playerMovementOnSurface.Normalized(), 3f, new Color(0f, 0f, 1f));
+				//DebugDraw3D.DrawRay(player.GlobalPosition, playerMovementOnSurface.Normalized(), 3f, new Color(0f, 0f, 1f));
 
 				player.ApplyForce(playerMovementOnSurface);
 			}
 			
+		}
+
+		if (climbing.climbAvailable && player.LinearVelocity.LengthSquared() > 0.01f)
+		{
+			player.GetNode<Node3D>("PlayerMesh").LookAt(player.GlobalPosition + player.LinearVelocity.Normalized(), -climbing.forceDirection);
 		}
 		
 		Vector3 drag = -player.LinearVelocity;
@@ -217,13 +228,26 @@ public partial class PlayerMovement : Node
 		{
 			if (climbing.climbAvailable)
 			{
-				DebugDraw3D.DrawArrowRay(player.GlobalPosition, climbing.forceDirection, 3f, new Color(0f, 1f, 0f));
+				//DebugDraw3D.DrawArrowRay(player.GlobalPosition, climbing.forceDirection, 3f, new Color(0f, 1f, 0f));
 			}
 		}
 	}
 
 	public override void _Input(InputEvent @event)
 	{
+		if (@event is InputEventMouseButton mouseEvent && mouseEvent.Pressed)
+		{
+			if (mouseEvent.ButtonIndex == MouseButton.Left)
+			{
+				monchSound.Play();
+			}
+
+			if (mouseEvent.ButtonIndex == MouseButton.Right)
+			{
+				meowSound.Play();
+			}
+		}
+
 		if (@event.IsActionPressed("Up"))
 		{
 			up = -Vector2.Up;

@@ -1,9 +1,24 @@
-[gd_scene load_steps=3 format=3 uid="uid://b1dehkqltf78l"]
+[gd_scene load_steps=6 format=3 uid="uid://b1dehkqltf78l"]
 
 [ext_resource type="Script" path="res://WeakPoint.cs" id="1_x1ogo"]
+[ext_resource type="Texture2D" uid="uid://cf6q0fssjyxsx" path="res://Materials/Halo.png" id="2_b0r2j"]
 
 [sub_resource type="SphereShape3D" id="SphereShape3D_muyuf"]
 radius = 1.0
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_kaw3b"]
+transparency = 1
+shading_mode = 0
+diffuse_mode = 3
+specular_mode = 2
+disable_ambient_light = true
+albedo_color = Color(0.552941, 0.0941176, 0.12549, 0.607843)
+albedo_texture = ExtResource("2_b0r2j")
+billboard_mode = 1
+billboard_keep_scale = true
+
+[sub_resource type="QuadMesh" id="QuadMesh_8bvc4"]
+material = SubResource("StandardMaterial3D_kaw3b")
 
 [node name="WeakPoint" type="Node3D"]
 script = ExtResource("1_x1ogo")
@@ -12,3 +27,7 @@ script = ExtResource("1_x1ogo")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Area3D"]
 shape = SubResource("SphereShape3D_muyuf")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+transform = Transform3D(3.01232, 0, 0, 0, 3.01232, 0, 0, 0, 1, 0, 0, 0)
+mesh = SubResource("QuadMesh_8bvc4")

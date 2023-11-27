@@ -15,7 +15,7 @@ public partial class WeakPoint : Node3D
 	// Called every frame. 'delta' is the elapsed time since the previous frame.
 	public override void _Process(double delta)
 	{
-		DebugDraw3D.DrawSphere(GlobalPosition, GlobalBasis.Scale.X);
+		//DebugDraw3D.DrawSphere(GlobalPosition, GlobalBasis.Scale.X);
 	}
 
 	public void _on_area_3d_body_entered(Node3D body)

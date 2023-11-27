@@ -1,12 +1,14 @@
-[gd_scene load_steps=15 format=3 uid="uid://bfxbkcwf0yxs5"]
+[gd_scene load_steps=16 format=3 uid="uid://bfxbkcwf0yxs5"]
 
 [ext_resource type="Script" path="res://ForceHandler.cs" id="1_131kf"]
 [ext_resource type="Script" path="res://IKSolver.cs" id="2_7jbhc"]
+[ext_resource type="Material" uid="uid://bysowhxm0skhc" path="res://Materials/colossus_material.tres" id="2_8oxho"]
 
 [sub_resource type="SphereShape3D" id="SphereShape3D_0voa5"]
 radius = 3.0
 
 [sub_resource type="SphereMesh" id="SphereMesh_r8ub3"]
+material = ExtResource("2_8oxho")
 radius = 3.0
 height = 6.0
 
@@ -14,6 +16,7 @@ height = 6.0
 radius = 3.0
 
 [sub_resource type="SphereMesh" id="SphereMesh_lybim"]
+material = ExtResource("2_8oxho")
 radius = 3.0
 height = 6.0
 
@@ -22,6 +25,7 @@ radius = 1.0
 height = 3.5
 
 [sub_resource type="CapsuleMesh" id="CapsuleMesh_ekkq1"]
+material = ExtResource("2_8oxho")
 radius = 1.0
 height = 3.5
 
@@ -30,6 +34,7 @@ radius = 1.5
 height = 5.0
 
 [sub_resource type="CapsuleMesh" id="CapsuleMesh_qqkhp"]
+material = ExtResource("2_8oxho")
 radius = 1.5
 height = 5.0
 
@@ -37,6 +42,7 @@ height = 5.0
 radius = 5.0
 
 [sub_resource type="SphereMesh" id="SphereMesh_h1sst"]
+material = ExtResource("2_8oxho")
 radius = 5.0
 height = 10.0
 
@@ -45,6 +51,8 @@ radius = 4.0
 height = 10.0
 
 [sub_resource type="CapsuleMesh" id="CapsuleMesh_ftg1v"]
+lightmap_size_hint = Vector2i(127, 74)
+material = ExtResource("2_8oxho")
 radius = 4.0
 height = 10.0
 
@@ -133,7 +141,7 @@ transform = Transform3D(1, -1.49012e-08, -1.49012e-08, 0, 1, 1.11759e-08, 0, 1.1
 shape = SubResource("CapsuleShape3D_xs1qg")
 
 [node name="CapsuleMesh" type="MeshInstance3D" parent="Torso/Chest/LeftShoulder/LeftArm/Forearm/Capsule"]
-transform = Transform3D(1, -3.55271e-15, 0, 3.55271e-15, 1, 0, 0, 0, 1, 0, -0.328439, 0)
+transform = Transform3D(1, -3.55271e-15, 0, 1.06581e-14, 1, 0, 0, 0, 1, 0, 0.0563469, 0)
 mesh = SubResource("CapsuleMesh_qqkhp")
 
 [node name="Capsule" type="Node3D" parent="Torso/Chest/LeftShoulder/LeftArm"]
@@ -150,7 +158,7 @@ transform = Transform3D(1, -1.49012e-08, -1.49012e-08, 0, 1, 1.11759e-08, 0, 1.1
 shape = SubResource("CapsuleShape3D_xs1qg")
 
 [node name="CapsuleMesh" type="MeshInstance3D" parent="Torso/Chest/LeftShoulder/LeftArm/Capsule"]
-transform = Transform3D(1, -3.55271e-15, 0, 3.55271e-15, 1, 0, 0, 0, 1, 0, -0.328439, 0)
+transform = Transform3D(1, -3.55271e-15, 0, 1.06581e-14, 1, 0, 0, 0, 1, 0, 0.0863276, 0)
 mesh = SubResource("CapsuleMesh_qqkhp")
 
 [node name="RightShoulder" type="Node3D" parent="Torso/Chest"]
@@ -213,7 +221,7 @@ transform = Transform3D(1, -1.49012e-08, -1.49012e-08, 0, 1, 1.11759e-08, 0, 1.1
 shape = SubResource("CapsuleShape3D_xs1qg")
 
 [node name="CapsuleMesh" type="MeshInstance3D" parent="Torso/Chest/RightShoulder/RightArm/Forearm/Capsule"]
-transform = Transform3D(1, -3.55271e-15, 0, 3.55271e-15, 1, 0, 0, 0, 1, 0, -0.328439, 0)
+transform = Transform3D(1, -3.55271e-15, 8.47033e-22, 1.06581e-14, 1, -1.42109e-14, -8.47033e-22, 1.42109e-14, 1, 0, 0.0522537, 3.32813e-08)
 mesh = SubResource("CapsuleMesh_qqkhp")
 
 [node name="Capsule" type="Node3D" parent="Torso/Chest/RightShoulder/RightArm"]
@@ -230,7 +238,7 @@ transform = Transform3D(1, -1.49012e-08, -1.49012e-08, 0, 1, 1.11759e-08, 0, 1.1
 shape = SubResource("CapsuleShape3D_xs1qg")
 
 [node name="CapsuleMesh" type="MeshInstance3D" parent="Torso/Chest/RightShoulder/RightArm/Capsule"]
-transform = Transform3D(1, -3.55271e-15, 0, 3.55271e-15, 1, 0, 0, 0, 1, 0, -0.328439, 0)
+transform = Transform3D(1, -3.55271e-15, 8.47033e-22, 1.06581e-14, 1, -1.42109e-14, -8.47033e-22, 1.42109e-14, 1, 0, 0.0566769, 3.3668e-08)
 mesh = SubResource("CapsuleMesh_qqkhp")
 
 [node name="ForceHandler" type="Node" parent="Torso/Chest"]
@@ -303,7 +311,7 @@ transform = Transform3D(1, -1.49012e-08, -1.49012e-08, 0, 1, 1.11759e-08, 0, 1.1
 shape = SubResource("CapsuleShape3D_xs1qg")
 
 [node name="CapsuleMesh" type="MeshInstance3D" parent="RightLeg/Capsule"]
-transform = Transform3D(1, -3.55271e-15, 0, 3.55271e-15, 1, 0, 0, 0, 1, 0, -0.328439, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.0227888, 0)
 mesh = SubResource("CapsuleMesh_qqkhp")
 
 [node name="LeftLeg" type="Node3D" parent="."]
@@ -348,5 +356,5 @@ transform = Transform3D(1, -1.49012e-08, -1.49012e-08, 0, 1, 1.11759e-08, 0, 1.1
 shape = SubResource("CapsuleShape3D_xs1qg")
 
 [node name="CapsuleMesh" type="MeshInstance3D" parent="LeftLeg/Capsule"]
-transform = Transform3D(1, -3.55271e-15, 0, 3.55271e-15, 1, 0, 0, 0, 1, 0, -0.328439, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.0332079, 0)
 mesh = SubResource("CapsuleMesh_qqkhp")

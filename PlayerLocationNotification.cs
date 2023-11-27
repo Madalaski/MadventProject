@@ -19,7 +19,7 @@ public partial class PlayerLocationNotification : Node3D
 	{
 		Basis = Basis.Scaled(Vector3.One + (Vector3.One * (float)delta * ScaleSpeed));
 
-		DebugDraw3D.DrawSphere(GlobalPosition, GlobalBasis.Scale.X, new Color(0.8f, 0f, 0f));
+		//DebugDraw3D.DrawSphere(GlobalPosition, GlobalBasis.Scale.X, new Color(0.8f, 0f, 0f));
 
 		if (Time.GetUnixTimeFromSystem() > startTime + Lifetime)
 		{
