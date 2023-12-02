@@ -1,7 +1,8 @@
-[gd_scene load_steps=3 format=3 uid="uid://bqsak0cpji8ee"]
+[gd_scene load_steps=4 format=3 uid="uid://bqsak0cpji8ee"]
 
 [ext_resource type="Script" path="res://MainMenuHandler.gd" id="1_nhpg5"]
 [ext_resource type="Texture2D" uid="uid://b4gn8570kv7nw" path="res://Logos/tooth_and_clawfinal.png" id="2_8c3hc"]
+[ext_resource type="AudioStream" uid="uid://p3bdcgm3pae2" path="res://SFX/MainMenuBGM_Converted.mp3" id="3_s3yx3"]
 
 [node name="MainMenu" type="Control"]
 layout_mode = 3
@@ -86,6 +87,11 @@ script = ExtResource("1_nhpg5")
 position = Vector2(573, 177)
 scale = Vector2(0.191847, 0.191847)
 texture = ExtResource("2_8c3hc")
+
+[node name="BGM" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("3_s3yx3")
+volume_db = -14.085
+autoplay = true
 
 [connection signal="pressed" from="ServerButtonFlat" to="MainMenuHandler" method="_on_server_button_pressed"]
 [connection signal="pressed" from="ServerButtonVR" to="MainMenuHandler" method="_on_server_button_vr_pressed"]

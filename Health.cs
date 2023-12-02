@@ -19,6 +19,9 @@ public partial class Health : Node
 	[Export]
 	TextureRect textureRect;
 
+	[Export]
+	PlayerMovement movement;
+
 	// Called when the node enters the scene tree for the first time.
 	public override void _Ready()
 	{
@@ -46,5 +49,10 @@ public partial class Health : Node
 	public void Damage(int amount)
 	{
 		CurrentHealth -= amount;
+
+		if (movement != null)
+		{
+			movement.Stagger();
+		}
 	}
 }

@@ -200,6 +200,13 @@ public partial class BigController : Node
 
 	public override void _Input(InputEvent @event)
 	{
+		if (@event.IsActionPressed("Jump"))
+		{
+			if (isServer)
+			{
+				InitiateBoost();
+			}
+		}
 	}
 
 	public void MoveLimbNode(NodePath path, Vector3 newPosition)
@@ -222,8 +229,12 @@ public partial class BigController : Node
 			startPosition = limbMovements[prevIndex].endPosition;
 		}
 
-		LimbMovement movement = new LimbMovement(nodeToMove, startPosition, newPosition, startTime, legSpeed);
-		movement.legHeight = legHeight;
+		LimbMovement movement = new LimbMovement(nodeToMove, startPosition, newPosition, startTime, nodeToMove.IsLeg() ? legSpeed : armSpeed);
+		if (nodeToMove.IsLeg())
+		{
+			movement.legHeight = legHeight;
+		}
+		
 		movement.generateDamageZone = nodeToMove.IsLeg();
 		limbMovements.Add(movement);
 	}

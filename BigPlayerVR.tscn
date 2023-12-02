@@ -1,0 +1,126 @@
+[gd_scene load_steps=17 format=3 uid="uid://bf3fdd5sbmqt1"]
+
+[ext_resource type="Script" path="res://BigController.cs" id="1_whm6n"]
+[ext_resource type="PackedScene" uid="uid://ng1c875cdyot" path="res://DamageZone.tscn" id="2_kvres"]
+[ext_resource type="PackedScene" uid="uid://p1qla8cl4s1b" path="res://PlayerLocationNotification.tscn" id="3_i1ybk"]
+[ext_resource type="Script" path="res://Health.cs" id="4_vvc2a"]
+[ext_resource type="Script" path="res://Stamina.cs" id="5_i3r4t"]
+[ext_resource type="Script" path="res://ColossusMovement.cs" id="6_nv1vy"]
+[ext_resource type="PackedScene" uid="uid://r8wg65i3phoi" path="res://Scenes/monster_scene.tscn" id="7_7flro"]
+[ext_resource type="PackedScene" uid="uid://clc5dre31iskm" path="res://addons/godot-xr-tools/xr/start_xr.tscn" id="9_qnr6g"]
+[ext_resource type="Script" path="res://VRController.cs" id="10_khtgx"]
+[ext_resource type="AudioStream" uid="uid://dukemm8yr41j3" path="res://SFX/BattleMusic.mp3" id="10_tk3cy"]
+
+[sub_resource type="SphereMesh" id="SphereMesh_w31wk"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_kto7f"]
+albedo_color = Color(0.00392157, 0, 1, 1)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_2xl7g"]
+albedo_color = Color(1, 0, 0, 1)
+
+[sub_resource type="PhysicalSkyMaterial" id="PhysicalSkyMaterial_8x8pk"]
+rayleigh_color = Color(0.0705882, 0.192157, 0.372549, 1)
+mie_coefficient = 0.109
+mie_color = Color(0.0470588, 0.14902, 0.466667, 1)
+sun_disk_scale = 12.75
+ground_color = Color(0.0980392, 0.101961, 0.0980392, 1)
+energy_multiplier = 0.5
+
+[sub_resource type="Sky" id="Sky_v6gcu"]
+sky_material = SubResource("PhysicalSkyMaterial_8x8pk")
+
+[sub_resource type="Environment" id="Environment_6t7wt"]
+background_mode = 2
+sky = SubResource("Sky_v6gcu")
+ambient_light_source = 3
+ambient_light_color = Color(0.240692, 0.270588, 0.266537, 1)
+ambient_light_energy = 1.16
+fog_enabled = true
+fog_light_color = Color(0.494118, 0.564706, 0.607843, 1)
+fog_light_energy = 1.83
+fog_sun_scatter = 0.12
+fog_density = 0.003
+fog_aerial_perspective = 0.515
+volumetric_fog_density = 0.02
+volumetric_fog_albedo = Color(0.717647, 0.792157, 1, 1)
+volumetric_fog_length = 30.09
+
+[node name="Main" type="Node3D"]
+
+[node name="BigController" type="Node" parent="." node_paths=PackedStringArray("colossus", "leftLegT", "rightLegT", "leftArmT", "rightArmT")]
+script = ExtResource("1_whm6n")
+isServer = true
+damageZone = ExtResource("2_kvres")
+playerNotification = ExtResource("3_i1ybk")
+colossus = NodePath("../MonsterScene/Colossus")
+leftLegT = NodePath("../MonsterScene/TargetParent/LeftLeg")
+rightLegT = NodePath("../MonsterScene/TargetParent/RightLeg")
+leftArmT = NodePath("../MonsterScene/TargetParent/LeftArm")
+rightArmT = NodePath("../MonsterScene/TargetParent/RightArm")
+
+[node name="Health" type="Node" parent="BigController"]
+script = ExtResource("4_vvc2a")
+
+[node name="Stamina" type="Node" parent="BigController"]
+script = ExtResource("5_i3r4t")
+
+[node name="ColossusMovement" type="Node" parent="BigController"]
+script = ExtResource("6_nv1vy")
+
+[node name="StartXR" parent="." instance=ExtResource("9_qnr6g")]
+auto_initialize = false
+
+[node name="MonsterScene" parent="." instance=ExtResource("7_7flro")]
+
+[node name="Chest" parent="MonsterScene/Colossus/Torso" index="0"]
+script = null
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(-0.859293, 0.139635, 0.492055, 0.373941, -0.484862, 0.790618, 0.348977, 0.863372, 0.364423, 66.3423, 0, -94.4082)
+shadow_enabled = true
+
+[node name="XROrigin3D" type="XROrigin3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 16.8318)
+current = true
+
+[node name="XRCamera3D" type="XRCamera3D" parent="XROrigin3D"]
+far = 8000.0
+
+[node name="AudioListener3D" type="AudioListener3D" parent="XROrigin3D/XRCamera3D"]
+current = true
+
+[node name="LeftHand" type="XRController3D" parent="XROrigin3D"]
+tracker = &"left_hand"
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="XROrigin3D/LeftHand"]
+mesh = SubResource("SphereMesh_w31wk")
+surface_material_override/0 = SubResource("StandardMaterial3D_kto7f")
+
+[node name="RightHand" type="XRController3D" parent="XROrigin3D"]
+tracker = &"right_hand"
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="XROrigin3D/RightHand"]
+mesh = SubResource("SphereMesh_w31wk")
+surface_material_override/0 = SubResource("StandardMaterial3D_2xl7g")
+
+[node name="VRController" type="Node" parent="XROrigin3D" node_paths=PackedStringArray("movement", "floor", "leftLegT", "rightLegT")]
+script = ExtResource("10_khtgx")
+movement = NodePath("../../BigController/ColossusMovement")
+floor = NodePath("../../MonsterScene/Floor")
+leftLegT = NodePath("../../MonsterScene/TargetParent/LeftLeg")
+rightLegT = NodePath("../../MonsterScene/TargetParent/RightLeg")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_6t7wt")
+
+[node name="BGM" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("10_tk3cy")
+volume_db = -24.966
+autoplay = true
+
+[connection signal="ready" from="BigController" to="StartXR" method="_on_big_controller_ready"]
+[connection signal="input_float_changed" from="XROrigin3D/LeftHand" to="XROrigin3D/VRController" method="LeftHandInputFloatChanged"]
+
+[editable path="MonsterScene"]
+[editable path="MonsterScene/Colossus"]

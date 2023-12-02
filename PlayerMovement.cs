@@ -62,6 +62,8 @@ public partial class PlayerMovement : Node
 	private AudioStreamPlayer meowSound;
 	private AudioStreamPlayer monchSound;
 
+	private AnimationPlayer anim;
+
 	public Vector2 NormalizeInput(Vector2 input)
 	{
 		if (input.LengthSquared() > 1.0f)
@@ -88,6 +90,7 @@ public partial class PlayerMovement : Node
 		stamina = player.GetNode<Stamina>("Stamina");
 		meowSound = player.GetNode<AudioStreamPlayer>("Audio/MeowSound");
 		monchSound = player.GetNode<AudioStreamPlayer>("Audio/MonchSound");
+		anim = player.GetNode<AnimationPlayer>("PlayerMesh/CatModelAnimated/AnimationPlayer");
 		lastTimeNotified = Time.GetUnixTimeFromSystem();
 	}
 
@@ -100,6 +103,37 @@ public partial class PlayerMovement : Node
 			bigController.Rpc("NotifyPlayerDeath");
 		}
 
+		if (anim.CurrentAnimation != "Attack" || !anim.IsPlaying())
+		{
+			switch (state)
+			{
+				case PlayerState.AIRBORNE:
+				case PlayerState.STAGGERED:
+				{
+					anim.Play("CatMeshAction");
+				} break;
+				case PlayerState.GROUNDED:
+				{
+					float velo = player.LinearVelocity.Length();
+					if (velo > 1f)
+					{
+						anim.Play("Gallop");
+						anim.SpeedScale = velo / 2.5f;
+					}
+					else
+					{
+						anim.Play("CatMeshAction");
+					}
+					
+				} break;
+				case PlayerState.CLIMBING:
+				{
+					anim.Play("Walking");
+					anim.SpeedScale = player.LinearVelocity.Length() / 1.25f;
+				} break;
+			}
+		}
+
 		if (state == PlayerState.STAGGERED)
 		{
 			if (currentTime > lastTimeStaggered + StaggeredRefresh)
@@ -108,6 +142,10 @@ public partial class PlayerMovement : Node
 			}
 			else
 			{
+				Vector3 spin = new Vector3();
+				spin.X = Mathf.Cos((float)currentTime * 2f * Mathf.Pi);
+				spin.Z = Mathf.Sin((float)currentTime * 2f * Mathf.Pi);
+				player.GetNode<Node3D>("PlayerMesh").LookAt(player.GlobalPosition + spin, Vector3.Up);
 				return;
 			}
 		}
@@ -239,7 +277,12 @@ public partial class PlayerMovement : Node
 		{
 			if (mouseEvent.ButtonIndex == MouseButton.Left)
 			{
-				monchSound.Play();
+				if (climbing.climbAvailable)
+				{
+					anim.Play("Attack");
+					anim.SpeedScale = 4f;
+					monchSound.Play();
+				}
 			}
 
 			if (mouseEvent.ButtonIndex == MouseButton.Right)

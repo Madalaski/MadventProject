@@ -53,7 +53,7 @@ shape = SubResource("SphereShape3D_muyuf")
 [node name="Particles" type="GPUParticles3D" parent="."]
 material_override = SubResource("StandardMaterial3D_jqqs0")
 emitting = false
-amount = 550
+amount = 200
 lifetime = 4.0
 one_shot = true
 explosiveness = 0.85

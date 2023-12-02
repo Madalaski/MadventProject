@@ -25,4 +25,8 @@ func _process(_delta):
 # warning-ignore:return_value_discarded
 		peer.put_packet(pkt)
 		server.stop()
-		get_tree().change_scene_to_file("res://BigPlayer.tscn")
+		var handler = ResourceLoader.load("res://MainMenuHandler.gd")
+		if handler.IsVREnabled:
+			get_tree().change_scene_to_file("res://BigPlayerVR.tscn")
+		else:
+			get_tree().change_scene_to_file("res://BigPlayer.tscn")

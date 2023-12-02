@@ -24,12 +24,6 @@ public partial class VRController : Node
 	StaticBody3D floor;
 
 	[Export]
-	Area3D leftArmDetector;
-
-	[Export]
-	Area3D rightArmDetector;
-
-	[Export]
 	Node3D leftLegT;
 
 	[Export]
@@ -81,34 +75,17 @@ public partial class VRController : Node
 			query.CollideWithAreas = true;
 			var result = spaceState.IntersectRay(query);
 
-			Node3D hitColliderLeft = null;
-			Node3D hitColliderRight = null;
-
 			if (result.Count > 0)
 			{
-				hitColliderLeft = result["collider"].As<Node3D>();
+				Node3D collider = result["collider"].As<Node3D>();
 
-				if (leftArmDetector != null && rightArmDetector != null)
+				if (collider.GetParent() is LimbIKTarget limb)
 				{
-					if (hitColliderLeft == leftArmDetector || hitColliderLeft == rightArmDetector)
+					limb.shouldShow = true;
+					if (leftTrigger)
 					{
-						if (leftTrigger)
-						{
-							Node3D nodeToMove = hitColliderLeft.GetParent<Node3D>();
-							movement.StartMovingNode(nodeToMove);
-							offset_ls = leftHand.ToLocal(nodeToMove.GlobalPosition);
-						}
-					}
-				}
-
-				if (hitColliderLeft == floor)
-				{
-					if (!leftTrigger && prevLeftTrigger)
-					{
-						Node3D nodeToMove = leftLegT;
-						movement.StartMovingNode(nodeToMove);
-						movement.UpdateMovingNode(result["position"].As<Vector3>());
-						movement.ReleaseMovingNode(false);
+						movement.StartMovingNode(limb);
+						offset_ls = leftHand.ToLocal(limb.GlobalPosition);
 					}
 				}
 			}
@@ -124,50 +101,17 @@ public partial class VRController : Node
 
 			if (result2.Count > 0)
 			{
-				hitColliderRight = result2["collider"].As<Node3D>();
+				Node3D collider = result2["collider"].As<Node3D>();
 
-				if (leftArmDetector != null && rightArmDetector != null)
+				if (collider.GetParent() is LimbIKTarget limb)
 				{
-					if (hitColliderRight == leftArmDetector || hitColliderRight == rightArmDetector)
+					limb.shouldShow = true;
+					if (rightTrigger)
 					{
-						hitColliderRight.GetParent().GetChild<Node3D>(0).Show();
-						if (rightTrigger)
-						{
-							Node3D nodeToMove = hitColliderRight.GetParent<Node3D>();
-							movement.StartMovingNode(nodeToMove);
-							offset_ls = rightHand.ToLocal(nodeToMove.GlobalPosition);
-						}
+						movement.StartMovingNode(limb);
+						offset_ls = rightHand.ToLocal(limb.GlobalPosition);
 					}
 				}
-
-				if (hitColliderRight == floor)
-				{
-					if (!rightTrigger && prevRightTrigger)
-					{
-						Node3D nodeToMove = rightLegT;
-						movement.StartMovingNode(nodeToMove);
-						movement.UpdateMovingNode(result2["position"].As<Vector3>());
-						movement.ReleaseMovingNode(false);
-					}
-				}
-			}
-
-			if (hitColliderLeft == leftArmDetector || hitColliderRight == leftArmDetector)
-			{
-				leftArmDetector.GetParent().GetChild<Node3D>(0).Show();
-			}
-			else
-			{
-				leftArmDetector.GetParent().GetChild<Node3D>(0).Hide();
-			}
-
-			if (hitColliderLeft == rightArmDetector || hitColliderRight == rightArmDetector)
-			{
-				rightArmDetector.GetParent().GetChild<Node3D>(0).Show();
-			}
-			else
-			{
-				rightArmDetector.GetParent().GetChild<Node3D>(0).Hide();
 			}
 		}
 		else

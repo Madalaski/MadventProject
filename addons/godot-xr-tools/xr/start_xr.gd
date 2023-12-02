@@ -284,3 +284,8 @@ func _find_closest(values : Array, target : float) -> float:
 
 	# Return the best value
 	return best
+
+
+func _on_big_controller_ready():
+	initialize()
+	pass # Replace with function body.

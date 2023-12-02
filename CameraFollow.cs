@@ -22,12 +22,6 @@ public partial class CameraFollow : Node
 	StaticBody3D floor;
 
 	[Export]
-	Area3D leftArmDetector;
-
-	[Export]
-	Area3D rightArmDetector;
-
-	[Export]
 	Node3D leftLegNode;
 
 	[Export]
@@ -101,7 +95,7 @@ public partial class CameraFollow : Node
 			CameraParent.GlobalTransform = CamPT;
 
 			Transform3D CamT = Camera.Transform;
-			CamT.Origin = CamT.Origin.Lerp(new Vector3(0f, 0f, CameraDistance), (float)delta * 5f);
+			CamT.Origin = new Vector3(0f, 0f, CameraDistance);
 			Camera.Transform = CamT;
 		}
 
@@ -156,51 +150,16 @@ public partial class CameraFollow : Node
 			if (result.Count > 0)
 			{
 				Node3D collider = result["collider"].As<Node3D>();
-				if (collider == floor)
+
+				if (collider.GetParent() is LimbIKTarget limb)
 				{
+					limb.shouldShow = true;
 					if (leftClickDown)
 					{
-						movement.StartMovingNode(leftLegNode);
-						movingLeg = true;
-					}
-					
-					if (rightClickDown)
-					{
-						movement.StartMovingNode(rightLegNode);
-						movingLeg = true;
+						movement.StartMovingNode(limb);
+						movingDistance = from.DistanceTo(limb.GlobalPosition);
 					}
 				}
-				else if (leftArmDetector != null && rightArmDetector != null)
-				{
-					if (collider == leftArmDetector)
-					{
-						leftArmDetector.GetParent().GetChild<Node3D>(0).Show();
-						if (leftClickDown)
-						{
-							movement.StartMovingNode(leftArmDetector.GetParent<Node3D>());
-							movingDistance = from.DistanceTo(leftArmDetector.GetParent<Node3D>().GlobalPosition);
-						}
-					}
-					else
-					{
-						leftArmDetector.GetParent().GetChild<Node3D>(0).Hide();
-					}
-
-					if (collider == rightArmDetector)
-					{
-						rightArmDetector.GetParent().GetChild<Node3D>(0).Show();
-						if (leftClickDown)
-						{
-							movement.StartMovingNode(rightArmDetector.GetParent<Node3D>());
-							movingDistance = from.DistanceTo(rightArmDetector.GetParent<Node3D>().GlobalPosition);
-						}
-					}
-					else
-					{
-						rightArmDetector.GetParent().GetChild<Node3D>(0).Hide();
-					}
-				}
-
 			}
 		}
 

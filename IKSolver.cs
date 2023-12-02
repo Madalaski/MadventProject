@@ -27,6 +27,12 @@ public partial class IKSolver : Node3D
 		if (target == null)
 			return;
 
+		if (chainLength == 0)
+		{
+			this.GlobalPosition = target.GlobalPosition;
+			return;
+		}
+
 		List<Node3D> nodes = new List<Node3D>();
 		List<Vector3> positions = new List<Vector3>();
 		List<float> lengths = new List<float>();

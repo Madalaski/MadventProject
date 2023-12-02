@@ -4,7 +4,7 @@ using System;
 public partial class ColossusMovement : Node
 {
 	private BigController colossus;
-	private Node3D movingNode = null;
+	private LimbIKTarget movingNode = null;
 	private Node3D DummyNode = null;
 
 	// Called when the node enters the scene tree for the first time.
@@ -23,7 +23,7 @@ public partial class ColossusMovement : Node
 		return movingNode != null;
 	}
 
-	public void StartMovingNode(Node3D node)
+	public void StartMovingNode(LimbIKTarget node)
 	{
 		movingNode = node;
 		CreateDummyNode(node.GlobalPosition);
@@ -31,7 +31,33 @@ public partial class ColossusMovement : Node
 
 	public void UpdateMovingNode(Vector3 globalPosition)
 	{
-		DummyNode.GlobalPosition = globalPosition;
+		Vector3 finalPosition = globalPosition;
+
+		if (movingNode.freezeX)
+		{
+			finalPosition.X = DummyNode.GlobalPosition.X;
+		}
+
+		if (movingNode.freezeY)
+		{
+			finalPosition.Y = DummyNode.GlobalPosition.Y;
+		}
+
+		if (movingNode.freezeZ)
+		{
+			finalPosition.Z = DummyNode.GlobalPosition.Z;
+		}
+
+		if (movingNode.DistanceRestraint > 0f && movingNode.DistanceRestraintNode != null)
+		{
+			if (movingNode.DistanceRestraintNode.GlobalPosition.DistanceTo(finalPosition) > movingNode.DistanceRestraint)
+			{
+				Vector3 offset = (finalPosition - movingNode.DistanceRestraintNode.GlobalPosition).Normalized();
+				finalPosition = movingNode.DistanceRestraintNode.GlobalPosition + offset * movingNode.DistanceRestraint;
+			}
+		}
+
+		DummyNode.GlobalPosition = finalPosition;
 	}
 
 	public void ReleaseMovingNode(bool cancel)

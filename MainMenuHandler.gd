@@ -4,7 +4,7 @@ extends Node
 func _ready():
 	pass # Replace with function body.
 
-static var IsVREnabled = false
+static var IsVREnabled = true
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta):
